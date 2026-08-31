@@ -1,0 +1,15 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# Scheduled function for automated daily follow-up reminders
+# Runs every day at 09:00 UTC (free tier supported on Netlify)
+[functions."send-reminders"]
+  schedule = "0 9 * * *"
+
+# SPA Fallback Redirect for React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
