@@ -1,24 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
-import { useOutletContext, useSearchParams } from 'react-router-dom';
-import { PageHeader } from '../components/common/PageHeader';
-import { ApplicationFilters, ApplicationFilterState } from '../components/applications/ApplicationFilters';
-import { ApplicationTable } from '../components/applications/ApplicationTable';
-import { EmptyState } from '../components/common/EmptyState';
-import { TableLoadingSkeleton } from '../components/common/LoadingSkeleton';
-import { ConfigAlert } from '../components/common/ConfigAlert';
-import { useApplications } from '../hooks/useApplications';
-import { useDebounce } from '../hooks/useDebounce';
-import { ApplicationWithFollowups, ApplicationStatus, ApplicationSource } from '../types/application';
-import { Followup, FollowupState } from '../types/followup';
+import React, { useState, useEffect } from "react";
+import { Box, Button } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import WorkOutlineOutlinedIcon from "@mui/icons-material/WorkOutlineOutlined";
+import { useOutletContext, useSearchParams } from "react-router-dom";
+import { PageHeader } from "../components/common/PageHeader";
+import {
+  ApplicationFilters,
+  ApplicationFilterState,
+} from "../components/applications/ApplicationFilters";
+import { ApplicationTable } from "../components/applications/ApplicationTable";
+import { EmptyState } from "../components/common/EmptyState";
+import { TableLoadingSkeleton } from "../components/common/LoadingSkeleton";
+import { ConfigAlert } from "../components/common/ConfigAlert";
+import { useApplications } from "../hooks/useApplications";
+import { useDebounce } from "../hooks/useDebounce";
+import {
+  ApplicationWithFollowups,
+  ApplicationStatus,
+  ApplicationSource,
+} from "../types/application";
+import { Followup, FollowupState } from "../types/followup";
 
 const initialFilters: ApplicationFilterState = {
-  search: '',
-  status: 'All',
-  source: 'All',
-  followupState: 'All',
+  search: "",
+  status: "All",
+  source: "All",
+  followupState: "All",
 };
 
 export const ApplicationsPage: React.FC = () => {
@@ -26,13 +33,18 @@ export const ApplicationsPage: React.FC = () => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [accumulatedApps, setAccumulatedApps] = useState<ApplicationWithFollowups[]>([]);
+  const [accumulatedApps, setAccumulatedApps] = useState<
+    ApplicationWithFollowups[]
+  >([]);
 
   const [filters, setFilters] = useState<ApplicationFilterState>(() => {
-    const statusParam = (searchParams.get('status') as ApplicationStatus) || 'All';
-    const sourceParam = (searchParams.get('source') as ApplicationSource) || 'All';
-    const followupParam = (searchParams.get('followup') as FollowupState) || 'All';
-    const queryParam = searchParams.get('q') || '';
+    const statusParam =
+      (searchParams.get("status") as ApplicationStatus) || "All";
+    const sourceParam =
+      (searchParams.get("source") as ApplicationSource) || "All";
+    const followupParam =
+      (searchParams.get("followup") as FollowupState) || "All";
+    const queryParam = searchParams.get("q") || "";
 
     return {
       search: queryParam,
@@ -46,10 +58,13 @@ export const ApplicationsPage: React.FC = () => {
 
   // Sync state if URL search params change
   useEffect(() => {
-    const statusParam = (searchParams.get('status') as ApplicationStatus) || 'All';
-    const sourceParam = (searchParams.get('source') as ApplicationSource) || 'All';
-    const followupParam = (searchParams.get('followup') as FollowupState) || 'All';
-    const queryParam = searchParams.get('q') || '';
+    const statusParam =
+      (searchParams.get("status") as ApplicationStatus) || "All";
+    const sourceParam =
+      (searchParams.get("source") as ApplicationSource) || "All";
+    const followupParam =
+      (searchParams.get("followup") as FollowupState) || "All";
+    const queryParam = searchParams.get("q") || "";
 
     setFilters({
       search: queryParam,
@@ -110,9 +125,10 @@ export const ApplicationsPage: React.FC = () => {
     setPage(0);
     const params: Record<string, string> = {};
     if (newFilters.search) params.q = newFilters.search;
-    if (newFilters.status !== 'All') params.status = newFilters.status;
-    if (newFilters.source !== 'All') params.source = newFilters.source;
-    if (newFilters.followupState !== 'All') params.followup = newFilters.followupState;
+    if (newFilters.status !== "All") params.status = newFilters.status;
+    if (newFilters.source !== "All") params.source = newFilters.source;
+    if (newFilters.followupState !== "All")
+      params.followup = newFilters.followupState;
     setSearchParams(params, { replace: true });
   };
 
@@ -123,7 +139,8 @@ export const ApplicationsPage: React.FC = () => {
     refetch();
   };
 
-  const mobileDisplayApps = accumulatedApps.length > 0 ? accumulatedApps : applications;
+  const mobileDisplayApps =
+    accumulatedApps.length > 0 ? accumulatedApps : applications;
   const hasMore = mobileDisplayApps.length < totalCount;
   const isLoadingMore = isFetching && page > 0;
 
@@ -163,14 +180,22 @@ export const ApplicationsPage: React.FC = () => {
       {/* Main Content Area */}
       {isLoading && page === 0 ? (
         <TableLoadingSkeleton rows={6} />
-      ) : totalCount === 0 && !filters.search && filters.status === 'All' && filters.source === 'All' && filters.followupState === 'All' ? (
+      ) : totalCount === 0 &&
+        !filters.search &&
+        filters.status === "All" &&
+        filters.source === "All" &&
+        filters.followupState === "All" ? (
         <EmptyState
           title="No applications added yet"
           description="Click '+ Add Application' to log your first job application. CareerPulse will immediately calculate your follow-up schedule."
-          actionText="+ Add Application"
+          actionText="Add Application"
           actionIcon={<AddIcon />}
           onAction={onOpenAddModal}
-          icon={<WorkOutlineOutlinedIcon sx={{ fontSize: 56, color: 'primary.main' }} />}
+          icon={
+            <WorkOutlineOutlinedIcon
+              sx={{ fontSize: 56, color: "primary.main" }}
+            />
+          }
         />
       ) : totalCount === 0 ? (
         <EmptyState

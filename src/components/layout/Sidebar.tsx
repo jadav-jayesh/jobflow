@@ -15,18 +15,13 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BrandLogo } from '../common/BrandLogo';
-
-const NAV_ITEMS = [
-  { label: 'Dashboard', path: '/dashboard', icon: <DashboardOutlinedIcon /> },
-  { label: 'Applications', path: '/applications', icon: <WorkOutlineOutlinedIcon /> },
-  { label: 'Follow-ups', path: '/followups', icon: <NotificationsActiveOutlinedIcon /> },
-  { label: 'Settings', path: '/settings', icon: <SettingsOutlinedIcon /> },
-];
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -41,8 +36,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onItemClick,
   isMobile = false,
 }) => {
+  const { profile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const navItems = [
+    { label: 'Dashboard', path: '/dashboard', icon: <DashboardOutlinedIcon /> },
+    { label: 'Applications', path: '/applications', icon: <WorkOutlineOutlinedIcon /> },
+    { label: 'Follow-ups', path: '/followups', icon: <NotificationsActiveOutlinedIcon /> },
+    { label: 'Settings', path: '/settings', icon: <SettingsOutlinedIcon /> },
+    ...(profile?.role === 'admin'
+      ? [{ label: 'Admin Console', path: '/admin', icon: <AdminPanelSettingsOutlinedIcon /> }]
+      : []),
+  ];
 
   return (
     <Box
@@ -92,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <List sx={{ px: collapsed ? 1 : 1.5, py: 0 }}>
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isSelected = location.pathname.startsWith(item.path);
 
             return (

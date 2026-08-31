@@ -13,6 +13,7 @@ import {
   ListItemText,
   Tooltip,
   Divider,
+  Chip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
@@ -21,6 +22,7 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import SettingsBrightnessOutlinedIcon from '@mui/icons-material/SettingsBrightnessOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { BrandLogo } from '../common/BrandLogo';
 import { useAuth } from '../../context/AuthContext';
 import { useUIStore, ThemeMode } from '../../store/uiStore';
@@ -69,6 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const initial = displayName.charAt(0).toUpperCase();
+  const isAdmin = profile?.role === 'admin';
 
   return (
     <AppBar
@@ -125,6 +128,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Side: Quick Add, Theme switcher, Profile */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {isAdmin && (
+            <Chip
+              size="small"
+              icon={<AdminPanelSettingsIcon sx={{ fontSize: '14px !important' }} />}
+              label="ADMIN"
+              color="primary"
+              variant="outlined"
+              onClick={() => navigate('/admin')}
+              sx={{ fontWeight: 700, fontSize: '0.72rem', cursor: 'pointer' }}
+            />
+          )}
+
           <Button
             variant="contained"
             color="primary"
@@ -212,14 +227,37 @@ export const Navbar: React.FC<NavbarProps> = ({
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
                 <Box sx={{ px: 2, py: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                    {displayName}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      {displayName}
+                    </Typography>
+                    {isAdmin && (
+                      <Chip
+                        size="small"
+                        label="Admin"
+                        color="primary"
+                        sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
+                      />
+                    )}
+                  </Box>
                   <Typography variant="caption" color="text.secondary">
                     {user.email}
                   </Typography>
                 </Box>
                 <Divider />
+                {isAdmin && (
+                  <MenuItem
+                    onClick={() => {
+                      handleProfileMenuClose();
+                      navigate('/admin');
+                    }}
+                  >
+                    <ListItemIcon>
+                      <AdminPanelSettingsIcon fontSize="small" color="primary" />
+                    </ListItemIcon>
+                    <ListItemText primary="Admin Console" />
+                  </MenuItem>
+                )}
                 <MenuItem
                   onClick={() => {
                     handleProfileMenuClose();

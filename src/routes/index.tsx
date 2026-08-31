@@ -6,6 +6,7 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { FollowupsPage } from '../pages/FollowupsPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { AdminPage } from '../pages/AdminPage';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 
@@ -30,6 +31,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="applications" element={<ApplicationsPage />} />
         <Route path="followups" element={<FollowupsPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="admin" element={<AdminPage />} />
       </Route>
 
       {/* Fallback */}
