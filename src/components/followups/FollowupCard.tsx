@@ -7,7 +7,8 @@ import {
   Button,
   Divider,
 } from '@mui/material';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
+import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { FollowupWithApplication } from '../../types/followup';
 import { ApplicationStatus } from '../../types/application';
@@ -45,24 +46,35 @@ export const FollowupCard: React.FC<FollowupCardProps> = ({
         border: '1px solid',
         borderColor: 'divider',
         backgroundColor: 'background.paper',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          borderColor: 'primary.light',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          borderColor: 'primary.main',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
         },
       }}
     >
       <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
-        {/* Header: Company, Role & Application Status */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+        {/* Card Header: Company, Role & Application Status */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 1.5,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            mb: 1.5,
+          }}
+        >
           <Box sx={{ flex: 1, pr: 1 }}>
             <Typography
               variant="subtitle1"
               sx={{
-                fontWeight: 700,
+                fontWeight: 800,
                 color: 'primary.main',
-                lineHeight: 1.25,
+                fontSize: '1.05rem',
                 cursor: 'pointer',
+                lineHeight: 1.25,
                 '&:hover': { textDecoration: 'underline' },
               }}
               onClick={() => app?.id && onViewApplication(app.id)}
@@ -79,86 +91,114 @@ export const FollowupCard: React.FC<FollowupCardProps> = ({
           </Box>
         </Box>
 
-        {/* Followup Stage & Due Date Banner */}
+        {/* 2-Column Structured Data Grid */}
         <Box
           sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 1.5,
-            my: 1.5,
-            py: 1,
-            px: 1.5,
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-            borderRadius: 2,
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 1.75,
+            mb: 1.75,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+          {/* Row 1: Sequence & Due Date */}
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              STAGE
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
               Follow-up #{followup.sequence_number}
             </Typography>
-            <FollowupBadge
-              state={state}
-              dueDate={followup.due_date}
-              sequenceNumber={followup.sequence_number}
-              showDate={false}
-            />
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-              Due: {formatDate(followup.due_date)}
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              DUE DATE
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              {formatDate(followup.due_date)}
+            </Typography>
+          </Box>
+
+          {/* Row 2: Dynamic State & Outreach Status */}
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              FOLLOW-UP STATE
+            </Typography>
+            <Box sx={{ mt: 0.25 }}>
+              <FollowupBadge
+                state={state}
+                dueDate={followup.due_date}
+                sequenceNumber={followup.sequence_number}
+                showDate={false}
+              />
+            </Box>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              OUTREACH RESULT
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: isCompleted ? 'success.main' : 'text.secondary' }}>
+              {isCompleted ? `${followup.result || 'Logged'} (${followup.method || 'Direct'})` : 'Pending Outreach'}
             </Typography>
           </Box>
         </Box>
 
-        {/* Method & Result or Notes */}
-        {isCompleted ? (
-          <Box sx={{ mb: 1.5, p: 1.25, backgroundColor: 'success.light', borderRadius: 1.5, opacity: 0.9 }}>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.dark', display: 'block' }}>
-              ✓ Result: {followup.result}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Logged via {followup.method || 'Direct'} on {formatDate(followup.completed_at)}
-            </Typography>
-          </Box>
-        ) : null}
-
         <Divider sx={{ my: 1.5 }} />
 
-        {/* Footer Actions */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Button
-            size="small"
-            variant="text"
-            color="primary"
-            onClick={() => app?.id && onViewApplication(app.id)}
-            sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'none' }}
-          >
-            View Application
-          </Button>
-
+        {/* Action Items Footer */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1,
+          }}
+        >
           {!isCompleted ? (
             <Button
               variant="contained"
               size="small"
               color={state === 'Today' || state === 'Overdue' ? 'warning' : 'primary'}
+              startIcon={<SendOutlinedIcon sx={{ fontSize: 16 }} />}
               onClick={() => onFollowUp(followup)}
-              sx={{ fontWeight: 600, fontSize: '0.75rem', textTransform: 'none', px: 2 }}
+              sx={{
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                textTransform: 'none',
+                px: 2,
+                py: 0.5,
+                borderRadius: 2,
+              }}
             >
               Follow Up
             </Button>
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'success.main' }}>
               <CheckCircleOutlinedIcon fontSize="small" />
-              <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                Completed
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                Logged on {formatDate(followup.completed_at)}
               </Typography>
             </Box>
           )}
+
+          <Button
+            size="small"
+            variant="outlined"
+            color="primary"
+            startIcon={<VisibilityOutlinedIcon sx={{ fontSize: 16 }} />}
+            onClick={() => app?.id && onViewApplication(app.id)}
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.78rem',
+              textTransform: 'none',
+              borderRadius: 2,
+              ml: 'auto',
+            }}
+          >
+            View Application
+          </Button>
         </Box>
       </CardContent>
     </Card>

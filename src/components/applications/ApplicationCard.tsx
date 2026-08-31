@@ -12,9 +12,7 @@ import {
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
-import LanguageOutlinedIcon from '@mui/icons-material/LanguageOutlined';
+import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import { ApplicationWithFollowups } from '../../types/application';
 import { Followup } from '../../types/followup';
 import { StatusChip } from '../common/StatusChip';
@@ -52,147 +50,213 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
         border: '1px solid',
         borderColor: 'divider',
         backgroundColor: 'background.paper',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          borderColor: 'primary.light',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          borderColor: 'primary.main',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
         },
       }}
     >
       <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
-        {/* Header: Company, Role, Status & Actions */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-          <Box sx={{ flex: 1, pr: 1 }}>
-            <Typography
-              variant="subtitle1"
-              sx={{
-                fontWeight: 700,
-                color: 'text.primary',
-                lineHeight: 1.25,
-                cursor: 'pointer',
-                '&:hover': { color: 'primary.main' },
-              }}
-              onClick={() => onView(application)}
-            >
-              {application.company_name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mt: 0.25 }}>
-              {application.job_role}
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <StatusChip status={application.status} />
-          </Box>
-        </Box>
-
-        {/* Metadata Details Grid */}
+        {/* Card Header: Company Name & Status Badge */}
         <Box
           sx={{
             display: 'flex',
-            flexWrap: 'wrap',
-            gap: 1.5,
-            my: 1.5,
-            py: 1,
-            px: 1.5,
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-            borderRadius: 2,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 1.5,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            mb: 1.5,
           }}
         >
-          {/* Applied Date */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <CalendarTodayOutlinedIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-              Applied: <strong style={{ color: 'inherit' }}>{formatDate(application.applied_date)}</strong>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontWeight: 800,
+              color: 'text.primary',
+              fontSize: '1.05rem',
+              cursor: 'pointer',
+              '&:hover': { color: 'primary.main' },
+            }}
+            onClick={() => onView(application)}
+          >
+            {application.company_name}
+          </Typography>
+
+          <StatusChip status={application.status} />
+        </Box>
+
+        {/* 2-Column Structured Data Grid */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 1.75,
+            mb: 1.75,
+          }}
+        >
+          {/* Row 1: Role & Location */}
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              ROLE
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', wordBreak: 'break-word' }}>
+              {application.job_role || '—'}
             </Typography>
           </Box>
 
-          {/* Location & Work Mode */}
-          {(application.location || application.work_mode) && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <LocationOnOutlinedIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                {application.location || 'Remote'}{' '}
-                {application.work_mode && `(${application.work_mode})`}
-              </Typography>
-            </Box>
-          )}
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              LOCATION
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', wordBreak: 'break-word' }}>
+              {application.location || '—'}
+            </Typography>
+          </Box>
 
-          {/* Source */}
-          {application.source && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <LanguageOutlinedIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                {application.source}
+          {/* Row 2: Applied Date & Work Mode */}
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              APPLIED DATE
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              {formatDate(application.applied_date)}
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              WORK MODE
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              {application.work_mode || '—'}
+            </Typography>
+          </Box>
+
+          {/* Row 3: Source & Next Follow-up */}
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              SOURCE
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              {application.source || '—'}
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+              NEXT FOLLOW-UP
+            </Typography>
+            {nextFollowup && followupState ? (
+              <Box sx={{ mt: 0.25 }}>
+                <FollowupBadge
+                  state={followupState}
+                  dueDate={nextFollowup.due_date}
+                  sequenceNumber={nextFollowup.sequence_number}
+                />
+              </Box>
+            ) : (
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.disabled' }}>
+                —
               </Typography>
-            </Box>
-          )}
+            )}
+          </Box>
         </Box>
 
-        {/* Next Follow-up Section */}
-        {nextFollowup && followupState ? (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1,
-              mt: 1.5,
-              pt: 1.5,
-              borderTop: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FollowupBadge
-                state={followupState}
-                dueDate={nextFollowup.due_date}
-                sequenceNumber={nextFollowup.sequence_number}
-              />
-            </Box>
+        <Divider sx={{ my: 1.5 }} />
 
+        {/* Action Items Footer */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1,
+          }}
+        >
+          {/* Primary Action: Follow Up (if active/pending) */}
+          {nextFollowup && followupState ? (
             <Button
-              variant="outlined"
+              variant="contained"
               size="small"
               color={followupState === 'Today' || followupState === 'Overdue' ? 'warning' : 'primary'}
+              startIcon={<SendOutlinedIcon sx={{ fontSize: 16 }} />}
               onClick={() => onFollowUp(nextFollowup, application)}
               sx={{
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                py: 0.35,
-                px: 1.5,
+                fontWeight: 700,
+                fontSize: '0.78rem',
                 textTransform: 'none',
+                px: 1.75,
+                py: 0.5,
+                borderRadius: 2,
               }}
             >
               Follow Up
             </Button>
-          </Box>
-        ) : null}
+          ) : (
+            <Button
+              variant="outlined"
+              size="small"
+              color="primary"
+              startIcon={<VisibilityOutlinedIcon sx={{ fontSize: 16 }} />}
+              onClick={() => onView(application)}
+              sx={{
+                fontWeight: 600,
+                fontSize: '0.78rem',
+                textTransform: 'none',
+                borderRadius: 2,
+              }}
+            >
+              View Details
+            </Button>
+          )}
 
-        <Divider sx={{ my: 1.5 }} />
+          {/* Secondary Action Icons */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, ml: 'auto' }}>
+            <Tooltip title="View Details">
+              <IconButton
+                size="small"
+                onClick={() => onView(application)}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.5,
+                  p: 0.75,
+                }}
+              >
+                <VisibilityOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
 
-        {/* Bottom Actions Bar */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Button
-            size="small"
-            variant="text"
-            color="primary"
-            startIcon={<VisibilityOutlinedIcon fontSize="small" />}
-            onClick={() => onView(application)}
-            sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'none' }}
-          >
-            View Details
-          </Button>
-
-          <Box sx={{ display: 'flex', gap: 0.5 }}>
             <Tooltip title="Edit Application">
-              <IconButton size="small" onClick={() => onEdit(application)}>
+              <IconButton
+                size="small"
+                onClick={() => onEdit(application)}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.5,
+                  p: 0.75,
+                }}
+              >
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
+
             <Tooltip title="Delete Application">
-              <IconButton size="small" color="error" onClick={() => onDelete(application.id)}>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => onDelete(application.id)}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.5,
+                  p: 0.75,
+                }}
+              >
                 <DeleteOutlinedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
