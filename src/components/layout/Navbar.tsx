@@ -70,6 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAddModal, onDrawerToggle }
       position="sticky"
       elevation={0}
       sx={{
+        width: '100%',
         backgroundColor: 'background.paper',
         color: 'text.primary',
         borderBottom: '1px solid',
@@ -77,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAddModal, onDrawerToggle }
         zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 3 } }}>
+      <Toolbar sx={{ minHeight: '64px !important', justifyContent: 'space-between', px: { xs: 2, sm: 3 } }}>
         {/* Left Side: Drawer Toggle & Brand */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <IconButton
@@ -91,24 +92,25 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAddModal, onDrawerToggle }
           </IconButton>
 
           <Box
-            sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer' }}
             onClick={() => navigate('/dashboard')}
           >
             <Box
               sx={{
-                width: 32,
-                height: 32,
+                width: 34,
+                height: 34,
                 borderRadius: 2,
                 backgroundColor: 'primary.main',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#ffffff',
+                boxShadow: '0 2px 4px rgba(37, 99, 235, 0.25)',
               }}
             >
               <WorkOutlineOutlinedIcon sx={{ fontSize: 20 }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.03em' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center' }}>
               Job<span style={{ color: '#2563eb' }}>Flow</span>
             </Typography>
           </Box>
@@ -126,6 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAddModal, onDrawerToggle }
               fontWeight: 600,
               display: { xs: 'none', sm: 'inline-flex' },
               px: 2,
+              py: 0.75,
             }}
           >
             Add Application
@@ -182,8 +185,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAddModal, onDrawerToggle }
                 <IconButton onClick={handleProfileMenuOpen} size="small">
                   <Avatar
                     sx={{
-                      width: 32,
-                      height: 32,
+                      width: 34,
+                      height: 34,
                       fontSize: '0.875rem',
                       fontWeight: 700,
                       backgroundColor: 'primary.main',

@@ -3,8 +3,6 @@ import {
   Box,
   Drawer,
   Container,
-  useTheme,
-  useMediaQuery,
   Snackbar,
   Alert,
 } from '@mui/material';
@@ -24,8 +22,6 @@ import { ApplicationFormData, FollowupLogFormData } from '../../utils/validation
 const DRAWER_WIDTH = 240;
 
 export const AppLayout: React.FC = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Global Dialog States
@@ -150,8 +146,8 @@ export const AppLayout: React.FC = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
-      {/* Top Navigation */}
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'background.default' }}>
+      {/* 1. Full-Width Top Navigation */}
       <Navbar
         onOpenAddModal={() => {
           setEditingApp(null);
@@ -160,85 +156,91 @@ export const AppLayout: React.FC = () => {
         onDrawerToggle={handleDrawerToggle}
       />
 
-      {/* Responsive Navigation Drawer / Sidebar */}
-      <Box
-        component="nav"
-        sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
-        aria-label="mailbox folders"
-      >
-        {/* Mobile Drawer */}
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: DRAWER_WIDTH,
-              backgroundColor: 'background.paper',
-            },
-          }}
+      {/* 2. Below Header Layout Container (Sidebar + Main Content) */}
+      <Box sx={{ display: 'flex', flexGrow: 1, width: '100%', minHeight: 'calc(100vh - 64px)' }}>
+        {/* Responsive Navigation Drawer / Sidebar */}
+        <Box
+          component="nav"
+          sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
+          aria-label="navigation menus"
         >
-          <Sidebar onItemClick={() => setMobileOpen(false)} />
-        </Drawer>
-
-        {/* Desktop Permanent Sidebar */}
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: DRAWER_WIDTH,
-              top: 64,
-              height: 'calc(100% - 64px)',
-              backgroundColor: 'background.paper',
-              borderRight: '1px solid',
-              borderColor: 'divider',
-            },
-          }}
-          open
-        >
-          <Sidebar />
-        </Drawer>
-      </Box>
-
-      {/* Main Content Area */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: { xs: 2, sm: 3, md: 4 },
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-          mt: '64px',
-          minHeight: 'calc(100vh - 64px)',
-        }}
-      >
-        <Container maxWidth="lg" disableGutters>
-          <Outlet
-            context={{
-              onOpenAddModal: () => {
-                setEditingApp(null);
-                setAddModalOpen(true);
-              },
-              onEditApplication: (app: ApplicationWithFollowups) => {
-                setEditingApp(app);
-                setAddModalOpen(true);
-              },
-              onViewApplication: (app: ApplicationWithFollowups) => {
-                setViewingApp(app);
-              },
-              onDeleteApplication: (id: string) => {
-                setDeleteAppId(id);
-              },
-              onFollowUp: (followup: Followup, app: ApplicationWithFollowups) => {
-                setActiveFollowup({ followup, application: app });
+          {/* Mobile Drawer */}
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{ keepMounted: true }}
+            sx={{
+              display: { xs: 'block', md: 'none' },
+              '& .MuiDrawer-paper': {
+                boxSizing: 'border-box',
+                width: DRAWER_WIDTH,
+                backgroundColor: 'background.paper',
+                borderRight: '1px solid',
+                borderColor: 'divider',
               },
             }}
-          />
-        </Container>
+          >
+            <Sidebar onItemClick={() => setMobileOpen(false)} />
+          </Drawer>
+
+          {/* Desktop Permanent Sidebar */}
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: 'none', md: 'block' },
+              '& .MuiDrawer-paper': {
+                boxSizing: 'border-box',
+                width: DRAWER_WIDTH,
+                position: 'sticky',
+                top: 64,
+                height: 'calc(100vh - 64px)',
+                backgroundColor: 'background.paper',
+                borderRight: '1px solid',
+                borderColor: 'divider',
+              },
+            }}
+            open
+          >
+            <Sidebar />
+          </Drawer>
+        </Box>
+
+        {/* Main Application Content Area */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, sm: 3, md: 4 },
+            width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
+            minHeight: 'calc(100vh - 64px)',
+            overflowX: 'hidden',
+          }}
+        >
+          <Container maxWidth="xl" disableGutters>
+            <Outlet
+              context={{
+                onOpenAddModal: () => {
+                  setEditingApp(null);
+                  setAddModalOpen(true);
+                },
+                onEditApplication: (app: ApplicationWithFollowups) => {
+                  setEditingApp(app);
+                  setAddModalOpen(true);
+                },
+                onViewApplication: (app: ApplicationWithFollowups) => {
+                  setViewingApp(app);
+                },
+                onDeleteApplication: (id: string) => {
+                  setDeleteAppId(id);
+                },
+                onFollowUp: (followup: Followup, app: ApplicationWithFollowups) => {
+                  setActiveFollowup({ followup, application: app });
+                },
+              }}
+            />
+          </Container>
+        </Box>
       </Box>
 
       {/* Global Application Form Dialog */}
