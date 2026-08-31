@@ -74,7 +74,7 @@ export function generateFollowupReminderEmail(params: EmailReminderParams): {
 
       <p style="margin-top: 24px;">Once you've reached out, make sure to record your follow-up in CareerPulse to automatically schedule the next date:</p>
       <p style="text-align: center;">
-        <a href="https://jobflow-jayesh.netlify.app/followups" class="btn">Open CareerPulse &amp; Log Result</a>
+        <a href="https://careerpulse-jayesh.netlify.app/followups" class="btn">Open CareerPulse &amp; Log Result</a>
       </p>
     </div>
     <div class="footer">
@@ -101,7 +101,7 @@ ${suggestedTemplate}
 ----------------------------------------
 
 Once you have followed up, open CareerPulse to record your result:
-https://jobflow-jayesh.netlify.app/followups
+https://careerpulse-jayesh.netlify.app/followups
 
 --
 CareerPulse • Automated Personal Job Application Tracker
