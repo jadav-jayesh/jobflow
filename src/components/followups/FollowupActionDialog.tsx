@@ -13,7 +13,9 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  IconButton,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { followupLogSchema, FollowupLogFormData } from '../../utils/validation';
@@ -74,62 +76,92 @@ export const FollowupActionDialog: React.FC<FollowupActionDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
-        Log Follow-up #{sequenceNumber}
-      </DialogTitle>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogContent dividers sx={{ pt: 2 }}>
-          {/* Target Application Header Summary */}
+    <Dialog
+      open={open}
+      onClose={loading ? undefined : onClose}
+      maxWidth="sm"
+      fullWidth
+      scroll="paper"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 3,
+            maxHeight: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 64px)' },
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          },
+        },
+      }}
+    >
+      <Box
+        component="form"
+        onSubmit={handleSubmit(handleFormSubmit)}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          height: '100%',
+          overflow: 'hidden',
+        }}
+      >
+        {/* 1. Fixed Header (Non-scrollable) */}
+        <DialogTitle
+          sx={{
+            m: 0,
+            px: 3,
+            py: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            flexShrink: 0,
+          }}
+        >
+          <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
+            Log Follow-up #{sequenceNumber}
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            disabled={loading}
+            sx={{ color: 'text.secondary' }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+
+        {/* 2. Scrollable Content */}
+        <DialogContent sx={{ p: 3, overflowY: 'auto', flex: 1 }}>
+          {/* Target Application Overview */}
           <Paper
             elevation={0}
             sx={{
               p: 2,
               mb: 3,
               borderRadius: 2,
-              backgroundColor: 'action.hover',
               border: '1px solid',
               borderColor: 'divider',
+              backgroundColor: 'action.hover',
             }}
           >
-            <Grid container spacing={1}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Company
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {companyName}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Role
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {jobRole}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 6 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Follow-up Sequence
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  #{sequenceNumber} of {maxFollowups}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 6 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Due Date
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {followup?.due_date ? formatDate(followup.due_date) : 'Today'}
-                </Typography>
-              </Grid>
-            </Grid>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              {companyName}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {jobRole}
+            </Typography>
+            {followup?.due_date && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                Due Date: <strong>{formatDate(followup.due_date)}</strong>
+              </Typography>
+            )}
           </Paper>
 
           <Grid container spacing={2.5}>
-            {/* Method */}
+            {/* Outreach Method */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <Controller
                 name="method"
@@ -138,7 +170,7 @@ export const FollowupActionDialog: React.FC<FollowupActionDialogProps> = ({
                   <TextField
                     {...field}
                     select
-                    label="Outreach Method *"
+                    label="Outreach Channel *"
                     fullWidth
                     error={!!errors.method}
                     helperText={errors.method?.message}
@@ -153,7 +185,7 @@ export const FollowupActionDialog: React.FC<FollowupActionDialogProps> = ({
               />
             </Grid>
 
-            {/* Result */}
+            {/* Outreach Result */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <Controller
                 name="result"
@@ -162,7 +194,7 @@ export const FollowupActionDialog: React.FC<FollowupActionDialogProps> = ({
                   <TextField
                     {...field}
                     select
-                    label="Result *"
+                    label="Outreach Result *"
                     fullWidth
                     error={!!errors.result}
                     helperText={errors.result?.message}
@@ -177,6 +209,25 @@ export const FollowupActionDialog: React.FC<FollowupActionDialogProps> = ({
               />
             </Grid>
 
+            {/* Smart Next-Step Prediction Notice */}
+            <Grid size={{ xs: 12 }}>
+              {willCreateNext && (
+                <Alert severity="info" variant="outlined" sx={{ borderRadius: 2 }}>
+                  <strong>Auto Follow-up #{sequenceNumber + 1}:</strong> CareerPulse will automatically schedule your next follow-up date based on your configuration.
+                </Alert>
+              )}
+              {isMaxReached && (
+                <Alert severity="warning" variant="outlined" sx={{ borderRadius: 2 }}>
+                  <strong>Maximum Follow-ups Reached ({maxFollowups}):</strong> No further follow-ups will be automatically scheduled for this application.
+                </Alert>
+              )}
+              {selectedResult === 'Response Received' && (
+                <Alert severity="success" variant="outlined" sx={{ borderRadius: 2 }}>
+                  <strong>Response Logged:</strong> Automatic follow-ups will stop. You can update the application status to <em>HR Contact</em> or <em>Interview</em>.
+                </Alert>
+              )}
+            </Grid>
+
             {/* Notes */}
             <Grid size={{ xs: 12 }}>
               <Controller
@@ -185,51 +236,29 @@ export const FollowupActionDialog: React.FC<FollowupActionDialogProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    value={field.value || ''}
-                    label="Notes / Response Summary"
+                    label="Outreach Notes (Optional)"
                     multiline
                     rows={3}
                     fullWidth
-                    placeholder="e.g. Sent InMail message, recruiter replied asking for resume in PDF..."
-                    error={!!errors.notes}
-                    helperText={errors.notes?.message}
+                    placeholder="e.g. Sent message to recruiter via InMail, requested call update..."
                   />
                 )}
               />
             </Grid>
           </Grid>
-
-          {/* Real-time automated workflow feedback */}
-          <Box sx={{ mt: 2.5 }}>
-            {willCreateNext && (
-              <Alert severity="info" variant="outlined" sx={{ py: 0.5, borderRadius: 1.5 }}>
-                <Typography variant="body2">
-                  <strong>Automatic Workflow:</strong> Since you received <em>No Response</em>,
-                  JobFlow will automatically schedule <strong>Follow-up #{sequenceNumber + 1}</strong>.
-                </Typography>
-              </Alert>
-            )}
-
-            {isMaxReached && (
-              <Alert severity="warning" variant="outlined" sx={{ py: 0.5, borderRadius: 1.5 }}>
-                <Typography variant="body2">
-                  <strong>Maximum Follow-ups Reached:</strong> Follow-up #{sequenceNumber} is the
-                  configured limit. No further automatic follow-ups will be created.
-                </Typography>
-              </Alert>
-            )}
-
-            {selectedResult === 'Response Received' && (
-              <Alert severity="success" variant="outlined" sx={{ py: 0.5, borderRadius: 1.5 }}>
-                <Typography variant="body2">
-                  <strong>Response Received:</strong> Automatic follow-ups will stop. You can update
-                  the application status in the details view.
-                </Typography>
-              </Alert>
-            )}
-          </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
+
+        {/* 3. Fixed Footer Buttons (Non-scrollable) */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            flexShrink: 0,
+          }}
+        >
           <Button onClick={onClose} disabled={loading} color="inherit">
             Cancel
           </Button>
@@ -238,11 +267,12 @@ export const FollowupActionDialog: React.FC<FollowupActionDialogProps> = ({
             variant="contained"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={16} /> : undefined}
+            sx={{ fontWeight: 600, px: 2.5 }}
           >
-            {loading ? 'Saving...' : 'Record Result'}
+            Record Follow-up
           </Button>
         </DialogActions>
-      </form>
+      </Box>
     </Dialog>
   );
 };

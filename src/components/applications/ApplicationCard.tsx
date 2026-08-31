@@ -7,12 +7,12 @@ import {
   IconButton,
   Tooltip,
   Button,
-  Divider,
 } from '@mui/material';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import { ApplicationWithFollowups } from '../../types/application';
 import { Followup } from '../../types/followup';
 import { StatusChip } from '../common/StatusChip';
@@ -50,64 +50,84 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
         border: '1px solid',
         borderColor: 'divider',
         backgroundColor: 'background.paper',
+        overflow: 'hidden',
         transition: 'all 0.2s ease-in-out',
         '&:hover': {
           borderColor: 'primary.main',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.07)',
         },
       }}
     >
-      <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
-        {/* Card Header: Company Name & Status Badge */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            pb: 1.5,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            mb: 1.5,
-          }}
-        >
+      {/* 1. Distinct Bold Card Header */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          px: 2.25,
+          py: 1.75,
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? 'rgba(37,99,235,0.08)' : 'rgba(37,99,235,0.04)',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, pr: 1 }}>
+          <BusinessOutlinedIcon sx={{ fontSize: 20, color: 'primary.main', flexShrink: 0 }} />
           <Typography
-            variant="subtitle1"
+            variant="h6"
             sx={{
               fontWeight: 800,
+              fontSize: '1.1rem',
+              letterSpacing: '-0.25px',
               color: 'text.primary',
-              fontSize: '1.05rem',
+              lineHeight: 1.2,
               cursor: 'pointer',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
               '&:hover': { color: 'primary.main' },
             }}
             onClick={() => onView(application)}
           >
             {application.company_name}
           </Typography>
-
-          <StatusChip status={application.status} />
         </Box>
 
-        {/* 2-Column Structured Data Grid */}
+        <Box sx={{ flexShrink: 0 }}>
+          <StatusChip status={application.status} />
+        </Box>
+      </Box>
+
+      {/* 2. Structured 2-Column Key-Value Grid */}
+      <CardContent sx={{ p: 2.25 }}>
         <Box
           sx={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: 1.75,
-            mb: 1.75,
+            gap: 2,
           }}
         >
           {/* Row 1: Role & Location */}
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 700, fontSize: '0.72rem', letterSpacing: 0.6, display: 'block', mb: 0.35 }}
+            >
               ROLE
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', wordBreak: 'break-word' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', wordBreak: 'break-word', fontSize: '0.925rem' }}>
               {application.job_role || '—'}
             </Typography>
           </Box>
 
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 700, fontSize: '0.72rem', letterSpacing: 0.6, display: 'block', mb: 0.35 }}
+            >
               LOCATION
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', wordBreak: 'break-word' }}>
@@ -117,7 +137,11 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
           {/* Row 2: Applied Date & Work Mode */}
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 700, fontSize: '0.72rem', letterSpacing: 0.6, display: 'block', mb: 0.35 }}
+            >
               APPLIED DATE
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
@@ -126,7 +150,11 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
           </Box>
 
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 700, fontSize: '0.72rem', letterSpacing: 0.6, display: 'block', mb: 0.35 }}
+            >
               WORK MODE
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
@@ -136,7 +164,11 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
 
           {/* Row 3: Source & Next Follow-up */}
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 700, fontSize: '0.72rem', letterSpacing: 0.6, display: 'block', mb: 0.35 }}
+            >
               SOURCE
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
@@ -145,7 +177,11 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
           </Box>
 
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 0.5, display: 'block', mb: 0.25 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 700, fontSize: '0.72rem', letterSpacing: 0.6, display: 'block', mb: 0.35 }}
+            >
               NEXT FOLLOW-UP
             </Typography>
             {nextFollowup && followupState ? (
@@ -163,106 +199,114 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
             )}
           </Box>
         </Box>
+      </CardContent>
 
-        <Divider sx={{ my: 1.5 }} />
+      {/* 3. Action Items Footer Bar */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 1,
+          px: 2.25,
+          py: 1.5,
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        {/* Primary Action Button */}
+        {nextFollowup && followupState ? (
+          <Button
+            variant="contained"
+            size="small"
+            color={followupState === 'Today' || followupState === 'Overdue' ? 'warning' : 'primary'}
+            startIcon={<SendOutlinedIcon sx={{ fontSize: 16 }} />}
+            onClick={() => onFollowUp(nextFollowup, application)}
+            sx={{
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              textTransform: 'none',
+              px: 2,
+              py: 0.6,
+              borderRadius: 2,
+              boxShadow: 'none',
+            }}
+          >
+            Follow Up
+          </Button>
+        ) : (
+          <Button
+            variant="outlined"
+            size="small"
+            color="primary"
+            startIcon={<VisibilityOutlinedIcon sx={{ fontSize: 16 }} />}
+            onClick={() => onView(application)}
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.8rem',
+              textTransform: 'none',
+              borderRadius: 2,
+            }}
+          >
+            View Details
+          </Button>
+        )}
 
-        {/* Action Items Footer */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 1,
-          }}
-        >
-          {/* Primary Action: Follow Up (if active/pending) */}
-          {nextFollowup && followupState ? (
-            <Button
-              variant="contained"
+        {/* Secondary Action Icons */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, ml: 'auto' }}>
+          <Tooltip title="View Details">
+            <IconButton
               size="small"
-              color={followupState === 'Today' || followupState === 'Overdue' ? 'warning' : 'primary'}
-              startIcon={<SendOutlinedIcon sx={{ fontSize: 16 }} />}
-              onClick={() => onFollowUp(nextFollowup, application)}
-              sx={{
-                fontWeight: 700,
-                fontSize: '0.78rem',
-                textTransform: 'none',
-                px: 1.75,
-                py: 0.5,
-                borderRadius: 2,
-              }}
-            >
-              Follow Up
-            </Button>
-          ) : (
-            <Button
-              variant="outlined"
-              size="small"
-              color="primary"
-              startIcon={<VisibilityOutlinedIcon sx={{ fontSize: 16 }} />}
               onClick={() => onView(application)}
               sx={{
-                fontWeight: 600,
-                fontSize: '0.78rem',
-                textTransform: 'none',
-                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1.75,
+                p: 0.75,
+                '&:hover': { backgroundColor: 'action.hover' },
               }}
             >
-              View Details
-            </Button>
-          )}
+              <VisibilityOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
-          {/* Secondary Action Icons */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, ml: 'auto' }}>
-            <Tooltip title="View Details">
-              <IconButton
-                size="small"
-                onClick={() => onView(application)}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1.5,
-                  p: 0.75,
-                }}
-              >
-                <VisibilityOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+          <Tooltip title="Edit Application">
+            <IconButton
+              size="small"
+              onClick={() => onEdit(application)}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1.75,
+                p: 0.75,
+                '&:hover': { backgroundColor: 'action.hover' },
+              }}
+            >
+              <EditOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
-            <Tooltip title="Edit Application">
-              <IconButton
-                size="small"
-                onClick={() => onEdit(application)}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1.5,
-                  p: 0.75,
-                }}
-              >
-                <EditOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-
-            <Tooltip title="Delete Application">
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => onDelete(application.id)}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1.5,
-                  p: 0.75,
-                }}
-              >
-                <DeleteOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
+          <Tooltip title="Delete Application">
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => onDelete(application.id)}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1.75,
+                p: 0.75,
+                '&:hover': { backgroundColor: 'error.lighter' },
+              }}
+            >
+              <DeleteOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
-      </CardContent>
+      </Box>
     </Card>
   );
 };

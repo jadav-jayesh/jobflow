@@ -17,7 +17,9 @@ import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsAc
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CloseIcon from '@mui/icons-material/Close';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { BrandLogo } from '../common/BrandLogo';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/dashboard', icon: <DashboardOutlinedIcon /> },
@@ -50,11 +52,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        pt: 2,
-        pb: 1.5,
+        pt: isMobile ? 'max(16px, env(safe-area-inset-top))' : 2,
+        pb: isMobile ? 'max(16px, env(safe-area-inset-bottom))' : 1.5,
       }}
     >
       <Box sx={{ flex: 1 }}>
+        {/* Mobile Header Bar with Logo and Close Button */}
+        {isMobile && (
+          <Box sx={{ px: 2, pb: 1.5, mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <BrandLogo size={32} />
+                <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.15rem' }}>
+                  CareerPulse
+                </Typography>
+              </Box>
+              <IconButton size="small" onClick={onItemClick} sx={{ color: 'text.secondary' }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+            <Divider sx={{ mt: 1.5 }} />
+          </Box>
+        )}
+
         {!collapsed && (
           <Typography
             variant="caption"

@@ -10,7 +10,11 @@ import {
   MenuItem,
   InputAdornment,
   CircularProgress,
+  Box,
+  IconButton,
+  Typography,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { applicationSchema, ApplicationFormData } from '../../utils/validation';
@@ -104,12 +108,65 @@ export const ApplicationFormDialog: React.FC<ApplicationFormDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
-        {isEdit ? 'Edit Application' : 'Add New Job Application'}
-      </DialogTitle>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogContent dividers sx={{ pt: 2.5 }}>
+    <Dialog
+      open={open}
+      onClose={loading ? undefined : onClose}
+      maxWidth="md"
+      fullWidth
+      scroll="paper"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 3,
+            maxHeight: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 64px)' },
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          },
+        },
+      }}
+    >
+      <Box
+        component="form"
+        onSubmit={handleSubmit(handleFormSubmit)}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          height: '100%',
+          overflow: 'hidden',
+        }}
+      >
+        {/* 1. Fixed Header (Non-scrollable) */}
+        <DialogTitle
+          sx={{
+            m: 0,
+            px: 3,
+            py: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            flexShrink: 0,
+          }}
+        >
+          <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
+            {isEdit ? 'Edit Application' : 'Add New Job Application'}
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            disabled={loading}
+            sx={{ color: 'text.secondary' }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+
+        {/* 2. Scrollable Body Content */}
+        <DialogContent sx={{ p: 3, overflowY: 'auto', flex: 1 }}>
           <Grid container spacing={2.5}>
             {/* Required Fields */}
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -362,7 +419,18 @@ export const ApplicationFormDialog: React.FC<ApplicationFormDialogProps> = ({
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
+
+        {/* 3. Fixed Footer Buttons (Non-scrollable) */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            flexShrink: 0,
+          }}
+        >
           <Button onClick={onClose} disabled={loading} color="inherit">
             Cancel
           </Button>
@@ -371,11 +439,12 @@ export const ApplicationFormDialog: React.FC<ApplicationFormDialogProps> = ({
             variant="contained"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={16} /> : undefined}
+            sx={{ fontWeight: 600, px: 2.5 }}
           >
             {isEdit ? 'Save Changes' : 'Create Application'}
           </Button>
         </DialogActions>
-      </form>
+      </Box>
     </Dialog>
   );
 };
