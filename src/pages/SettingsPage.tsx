@@ -104,7 +104,11 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleSendTestEmail = async () => {
+  const handleSendTestEmail = async (e?: React.SyntheticEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setTestEmailLoading(true);
     setTestEmailResult(null);
 
@@ -342,6 +346,7 @@ export const SettingsPage: React.FC = () => {
                 </Button>
 
                 <Button
+                  type="button"
                   variant="outlined"
                   color="secondary"
                   startIcon={testEmailLoading ? <CircularProgress size={16} /> : <SendIcon />}
@@ -459,6 +464,7 @@ export const SettingsPage: React.FC = () => {
 
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Button
+            type="button"
             variant="outlined"
             color="primary"
             startIcon={seeding ? <CircularProgress size={16} /> : <AutoAwesomeIcon />}
