@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Table,
   TableBody,
@@ -27,6 +27,11 @@ import { useAuth } from '../../context/AuthContext';
 
 interface ApplicationTableProps {
   applications: ApplicationWithFollowups[];
+  totalCount: number;
+  page: number;
+  rowsPerPage: number;
+  onPageChange: (newPage: number) => void;
+  onRowsPerPageChange: (newRowsPerPage: number) => void;
   onView: (app: ApplicationWithFollowups) => void;
   onEdit: (app: ApplicationWithFollowups) => void;
   onDelete: (id: string) => void;
@@ -35,28 +40,25 @@ interface ApplicationTableProps {
 
 export const ApplicationTable: React.FC<ApplicationTableProps> = ({
   applications,
+  totalCount,
+  page,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
   onView,
   onEdit,
   onDelete,
   onFollowUp,
 }) => {
   const { profile } = useAuth();
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
+    onPageChange(newPage);
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    onRowsPerPageChange(parseInt(event.target.value, 10));
   };
-
-  const paginatedApps = applications.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
 
   return (
     <Paper
@@ -82,7 +84,7 @@ export const ApplicationTable: React.FC<ApplicationTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedApps.map((app) => {
+            {applications.map((app) => {
               const nextFollowup = app.nextFollowup;
               const followupState = nextFollowup
                 ? getFollowupState(nextFollowup, app.status, profile?.timezone)
@@ -205,17 +207,15 @@ export const ApplicationTable: React.FC<ApplicationTableProps> = ({
         </Table>
       </TableContainer>
 
-      {applications.length > rowsPerPage && (
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={applications.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      )}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        component="div"
+        count={totalCount}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
     </Paper>
   );
 };

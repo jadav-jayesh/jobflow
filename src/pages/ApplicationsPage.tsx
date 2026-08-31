@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
@@ -10,9 +10,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { TableLoadingSkeleton } from '../components/common/LoadingSkeleton';
 import { ConfigAlert } from '../components/common/ConfigAlert';
 import { useApplications } from '../hooks/useApplications';
-import { useAuth } from '../context/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
-import { getFollowupState } from '../utils/followupEngine';
 import { ApplicationWithFollowups, ApplicationStatus, ApplicationSource } from '../types/application';
 import { Followup, FollowupState } from '../types/followup';
 
@@ -24,28 +22,10 @@ const initialFilters: ApplicationFilterState = {
 };
 
 export const ApplicationsPage: React.FC = () => {
-  const { profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const {
-    applications,
-    isLoading,
-    deleteApplication,
-  } = useApplications();
-
-  const {
-    onOpenAddModal,
-    onEditApplication,
-    onViewApplication,
-    onDeleteApplication,
-    onFollowUp,
-  } = useOutletContext<{
-    onOpenAddModal: () => void;
-    onEditApplication: (app: ApplicationWithFollowups) => void;
-    onViewApplication: (app: ApplicationWithFollowups) => void;
-    onDeleteApplication: (id: string) => void;
-    onFollowUp: (followup: Followup, app: ApplicationWithFollowups) => void;
-  }>();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [filters, setFilters] = useState<ApplicationFilterState>(() => {
     const statusParam = (searchParams.get('status') as ApplicationStatus) || 'All';
@@ -61,26 +41,56 @@ export const ApplicationsPage: React.FC = () => {
     };
   });
 
-  // Keep state synced if URL search params change
+  const debouncedSearch = useDebounce(filters.search, 250);
+
+  // Sync state if URL search params change
   useEffect(() => {
     const statusParam = (searchParams.get('status') as ApplicationStatus) || 'All';
     const sourceParam = (searchParams.get('source') as ApplicationSource) || 'All';
     const followupParam = (searchParams.get('followup') as FollowupState) || 'All';
     const queryParam = searchParams.get('q') || '';
 
-    setFilters((prev) => ({
-      ...prev,
+    setFilters({
       search: queryParam,
       status: statusParam,
       source: sourceParam,
       followupState: followupParam,
-    }));
+    });
+    setPage(0);
   }, [searchParams]);
 
-  const debouncedSearch = useDebounce(filters.search, 250);
+  // Query Backend with Server-Side Pagination & Filtering
+  const {
+    applications,
+    totalCount,
+    isLoading,
+    deleteApplication,
+  } = useApplications({
+    page,
+    pageSize: rowsPerPage,
+    search: debouncedSearch,
+    status: filters.status,
+    source: filters.source,
+    followupState: filters.followupState,
+  });
+
+  const {
+    onOpenAddModal,
+    onEditApplication,
+    onViewApplication,
+    onDeleteApplication,
+    onFollowUp,
+  } = useOutletContext<{
+    onOpenAddModal: () => void;
+    onEditApplication: (app: ApplicationWithFollowups) => void;
+    onViewApplication: (app: ApplicationWithFollowups) => void;
+    onDeleteApplication: (id: string) => void;
+    onFollowUp: (followup: Followup, app: ApplicationWithFollowups) => void;
+  }>();
 
   const handleFilterChange = (newFilters: ApplicationFilterState) => {
     setFilters(newFilters);
+    setPage(0);
     const params: Record<string, string> = {};
     if (newFilters.search) params.q = newFilters.search;
     if (newFilters.status !== 'All') params.status = newFilters.status;
@@ -91,48 +101,9 @@ export const ApplicationsPage: React.FC = () => {
 
   const handleResetFilters = () => {
     setFilters(initialFilters);
+    setPage(0);
     setSearchParams({}, { replace: true });
   };
-
-  const filteredApplications = useMemo(() => {
-    return applications.filter((app) => {
-      // 1. Search Query Filter
-      if (debouncedSearch.trim()) {
-        const query = debouncedSearch.toLowerCase().trim();
-        const matchesCompany = app.company_name.toLowerCase().includes(query);
-        const matchesRole = app.job_role.toLowerCase().includes(query);
-        const matchesLocation = app.location?.toLowerCase().includes(query) || false;
-        if (!matchesCompany && !matchesRole && !matchesLocation) {
-          return false;
-        }
-      }
-
-      // 2. Status Filter
-      if (filters.status !== 'All' && app.status !== filters.status) {
-        return false;
-      }
-
-      // 3. Source Filter
-      if (filters.source !== 'All' && app.source !== filters.source) {
-        return false;
-      }
-
-      // 4. Follow-up State Filter
-      if (filters.followupState !== 'All') {
-        const nextFollowup = app.nextFollowup;
-        if (!nextFollowup) {
-          if (filters.followupState !== 'Completed') return false;
-        } else {
-          const state = getFollowupState(nextFollowup, app.status, profile?.timezone);
-          if (state !== filters.followupState) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    });
-  }, [applications, debouncedSearch, filters.status, filters.source, filters.followupState, profile]);
 
   return (
     <Box>
@@ -140,7 +111,7 @@ export const ApplicationsPage: React.FC = () => {
 
       <PageHeader
         title="Job Applications"
-        subtitle={`Track and manage your applications (${applications.length} total)`}
+        subtitle={`Track and manage your applications (${totalCount} total)`}
         action={
           <Button
             variant="contained"
@@ -164,7 +135,7 @@ export const ApplicationsPage: React.FC = () => {
       {/* Main Content Area */}
       {isLoading ? (
         <TableLoadingSkeleton rows={6} />
-      ) : applications.length === 0 ? (
+      ) : totalCount === 0 && !filters.search && filters.status === 'All' && filters.source === 'All' && filters.followupState === 'All' ? (
         <EmptyState
           title="No applications added yet"
           description="Click '+ Add Application' to log your first job application. CareerPulse will immediately calculate your follow-up schedule."
@@ -173,7 +144,7 @@ export const ApplicationsPage: React.FC = () => {
           onAction={onOpenAddModal}
           icon={<WorkOutlineOutlinedIcon sx={{ fontSize: 56, color: 'primary.main' }} />}
         />
-      ) : filteredApplications.length === 0 ? (
+      ) : applications.length === 0 ? (
         <EmptyState
           title="No matching applications found"
           description="Try clearing your search query or adjusting your status and source filters."
@@ -182,7 +153,15 @@ export const ApplicationsPage: React.FC = () => {
         />
       ) : (
         <ApplicationTable
-          applications={filteredApplications}
+          applications={applications}
+          totalCount={totalCount}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={setPage}
+          onRowsPerPageChange={(newSize) => {
+            setRowsPerPage(newSize);
+            setPage(0);
+          }}
           onView={onViewApplication}
           onEdit={onEditApplication}
           onDelete={onDeleteApplication}

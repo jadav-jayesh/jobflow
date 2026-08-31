@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Tabs, Tab, Paper } from '@mui/material';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
@@ -7,41 +7,46 @@ import { FollowupTable } from '../components/followups/FollowupTable';
 import { EmptyState } from '../components/common/EmptyState';
 import { TableLoadingSkeleton } from '../components/common/LoadingSkeleton';
 import { ConfigAlert } from '../components/common/ConfigAlert';
-import { useFollowups } from '../hooks/useFollowups';
-import { useAuth } from '../context/AuthContext';
-import { getFollowupState } from '../utils/followupEngine';
+import { useFollowups, FollowupTabValue } from '../hooks/useFollowups';
 import { FollowupWithApplication } from '../types/followup';
-import { ApplicationStatus } from '../types/application';
-
-type TabValue = 'all' | 'today' | 'overdue' | 'upcoming' | 'completed';
 
 export const FollowupsPage: React.FC = () => {
-  const { profile } = useAuth();
-  const { followups, isLoading } = useFollowups();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const tabParam = (searchParams.get('tab') as TabValue) || 'all';
-  const [activeTab, setActiveTab] = useState<TabValue>(
+  const tabParam = (searchParams.get('tab') as FollowupTabValue) || 'all';
+  const [activeTab, setActiveTab] = useState<FollowupTabValue>(
     ['all', 'today', 'overdue', 'upcoming', 'completed'].includes(tabParam) ? tabParam : 'all'
   );
 
-  // Sync state if URL query param changes
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Sync tab state when URL search params change
   useEffect(() => {
-    const currentTab = searchParams.get('tab') as TabValue;
+    const currentTab = searchParams.get('tab') as FollowupTabValue;
     if (currentTab && ['all', 'today', 'overdue', 'upcoming', 'completed'].includes(currentTab)) {
       setActiveTab(currentTab);
     } else if (!currentTab) {
       setActiveTab('all');
     }
+    setPage(0);
   }, [searchParams]);
+
+  // Backend-Driven Data Query
+  const { followups, totalCount, counts, isLoading } = useFollowups({
+    page,
+    pageSize: rowsPerPage,
+    tab: activeTab,
+  });
 
   const { onFollowUp, onViewApplication } = useOutletContext<{
     onFollowUp: (followup: any, app: any) => void;
     onViewApplication: (app: any) => void;
   }>();
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: TabValue) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: FollowupTabValue) => {
     setActiveTab(newValue);
+    setPage(0);
     if (newValue === 'all') {
       searchParams.delete('tab');
       setSearchParams(searchParams, { replace: true });
@@ -49,44 +54,6 @@ export const FollowupsPage: React.FC = () => {
       setSearchParams({ tab: newValue }, { replace: true });
     }
   };
-
-  const filteredFollowups = useMemo(() => {
-    return followups.filter((item) => {
-      const state = getFollowupState(
-        item,
-        item.applications?.status as ApplicationStatus,
-        profile?.timezone
-      );
-
-      if (activeTab === 'today') return state === 'Today';
-      if (activeTab === 'overdue') return state === 'Overdue';
-      if (activeTab === 'upcoming') return state === 'Upcoming';
-      if (activeTab === 'completed') return state === 'Completed';
-
-      return true;
-    });
-  }, [followups, activeTab, profile]);
-
-  const counts = useMemo(() => {
-    let today = 0;
-    let overdue = 0;
-    let upcoming = 0;
-    let completed = 0;
-
-    followups.forEach((item) => {
-      const state = getFollowupState(
-        item,
-        item.applications?.status as ApplicationStatus,
-        profile?.timezone
-      );
-      if (state === 'Today') today++;
-      if (state === 'Overdue') overdue++;
-      if (state === 'Upcoming') upcoming++;
-      if (state === 'Completed') completed++;
-    });
-
-    return { today, overdue, upcoming, completed, all: followups.length };
-  }, [followups, profile]);
 
   return (
     <Box>
@@ -144,7 +111,7 @@ export const FollowupsPage: React.FC = () => {
       {/* Main Follow-up List */}
       {isLoading ? (
         <TableLoadingSkeleton rows={5} />
-      ) : filteredFollowups.length === 0 ? (
+      ) : followups.length === 0 ? (
         <EmptyState
           title={
             activeTab === 'today'
@@ -162,7 +129,15 @@ export const FollowupsPage: React.FC = () => {
         />
       ) : (
         <FollowupTable
-          followups={filteredFollowups}
+          followups={followups}
+          totalCount={totalCount}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={setPage}
+          onRowsPerPageChange={(newSize) => {
+            setRowsPerPage(newSize);
+            setPage(0);
+          }}
           onFollowUp={(item) => onFollowUp(item, item.applications)}
           onViewApplication={(appId) => {
             const app = itemAppFromId(appId, followups);

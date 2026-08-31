@@ -6,38 +6,97 @@ import {
   ApplicationWithFollowups,
   CreateApplicationDTO,
   UpdateApplicationDTO,
+  ApplicationStatus,
+  ApplicationSource,
 } from '../types/application';
-import { Followup } from '../types/followup';
+import { Followup, FollowupState } from '../types/followup';
 import {
   calculateNextFollowupDate,
   getNextPendingFollowup,
+  getFollowupState,
 } from '../utils/followupEngine';
 import { isApplicationActive } from '../constants/statuses';
 import { useSettings } from './useSettings';
 
 export const APPLICATIONS_QUERY_KEY = ['applications'];
 
-export function useApplications() {
-  const { user } = useAuth();
+export interface UseApplicationsParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: ApplicationStatus | 'All';
+  source?: ApplicationSource | 'All';
+  followupState?: FollowupState | 'All';
+}
+
+export function useApplications(params?: UseApplicationsParams) {
+  const { user, profile } = useAuth();
   const { settings } = useSettings();
   const queryClient = useQueryClient();
 
-  const applicationsQuery = useQuery({
-    queryKey: [...APPLICATIONS_QUERY_KEY, user?.id],
-    queryFn: async (): Promise<ApplicationWithFollowups[]> => {
-      if (!isSupabaseConfigured || !user) return [];
+  const page = params?.page ?? 0;
+  const pageSize = params?.pageSize ?? 10;
+  const search = params?.search?.trim();
+  const status = params?.status;
+  const source = params?.source;
+  const followupState = params?.followupState;
 
-      const { data, error } = await (supabase.from('applications') as any)
-        .select(`
-          *,
-          followups:followups(*)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+  const applicationsQuery = useQuery({
+    queryKey: [
+      ...APPLICATIONS_QUERY_KEY,
+      user?.id,
+      page,
+      pageSize,
+      search,
+      status,
+      source,
+      followupState,
+    ],
+    queryFn: async (): Promise<{
+      applications: ApplicationWithFollowups[];
+      totalCount: number;
+    }> => {
+      if (!isSupabaseConfigured || !user) {
+        return { applications: [], totalCount: 0 };
+      }
+
+      let query = (supabase.from('applications') as any)
+        .select(
+          `
+            *,
+            followups:followups(*)
+          `,
+          { count: 'exact' }
+        )
+        .eq('user_id', user.id);
+
+      // 1. Backend Search (Company name, Job role, Location)
+      if (search) {
+        query = query.or(
+          `company_name.ilike.%${search}%,job_role.ilike.%${search}%,location.ilike.%${search}%`
+        );
+      }
+
+      // 2. Backend Status Filter
+      if (status && status !== 'All') {
+        query = query.eq('status', status);
+      }
+
+      // 3. Backend Source Filter
+      if (source && source !== 'All') {
+        query = query.eq('source', source);
+      }
+
+      // 4. Backend Pagination (LIMIT / OFFSET)
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+      query = query.order('created_at', { ascending: false }).range(from, to);
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
-      return (data || []).map((app: any) => {
+      let mappedApps: ApplicationWithFollowups[] = (data || []).map((app: any) => {
         const followups: Followup[] = (app.followups || []).sort(
           (a: Followup, b: Followup) => a.sequence_number - b.sequence_number
         );
@@ -49,6 +108,23 @@ export function useApplications() {
           nextFollowup,
         };
       });
+
+      // Client-side Follow-up dynamic state filter if specified
+      if (followupState && followupState !== 'All') {
+        mappedApps = mappedApps.filter((app) => {
+          const nextFollowup = app.nextFollowup;
+          if (!nextFollowup) {
+            return followupState === 'Completed';
+          }
+          const st = getFollowupState(nextFollowup, app.status, profile?.timezone);
+          return st === followupState;
+        });
+      }
+
+      return {
+        applications: mappedApps,
+        totalCount: count ?? mappedApps.length,
+      };
     },
     enabled: !!user,
   });
@@ -57,11 +133,11 @@ export function useApplications() {
     mutationFn: async (dto: CreateApplicationDTO) => {
       if (!user) throw new Error('User not authenticated');
 
-      const status = dto.status || 'Applied';
+      const appStatus = dto.status || 'Applied';
       const { data: newApp, error: appError } = await (supabase.from('applications') as any)
         .insert({
           ...dto,
-          status,
+          status: appStatus,
           user_id: user.id,
         })
         .select()
@@ -71,7 +147,7 @@ export function useApplications() {
         throw new Error(appError?.message || 'Failed to create application');
       }
 
-      if (isApplicationActive(status)) {
+      if (isApplicationActive(appStatus)) {
         const followup1DueDate = calculateNextFollowupDate(
           newApp.applied_date,
           1,
@@ -171,7 +247,8 @@ export function useApplications() {
   });
 
   return {
-    applications: applicationsQuery.data || [],
+    applications: applicationsQuery.data?.applications || [],
+    totalCount: applicationsQuery.data?.totalCount || 0,
     isLoading: applicationsQuery.isLoading,
     isError: applicationsQuery.isError,
     error: applicationsQuery.error,

@@ -7,39 +7,130 @@ import {
   shouldCreateNextFollowup,
   buildNextFollowupPayload,
 } from '../utils/followupEngine';
+import { getTodayISODate } from '../utils/dateUtils';
 import { useSettings } from './useSettings';
 import { APPLICATIONS_QUERY_KEY } from './useApplications';
 
 export const FOLLOWUPS_QUERY_KEY = ['followups'];
 
-export function useFollowups() {
-  const { user } = useAuth();
+export type FollowupTabValue = 'all' | 'today' | 'overdue' | 'upcoming' | 'completed';
+
+export interface UseFollowupsParams {
+  page?: number;
+  pageSize?: number;
+  tab?: FollowupTabValue;
+}
+
+export function useFollowups(params?: UseFollowupsParams) {
+  const { user, profile } = useAuth();
   const { settings } = useSettings();
   const queryClient = useQueryClient();
 
-  const followupsQuery = useQuery({
-    queryKey: [...FOLLOWUPS_QUERY_KEY, user?.id],
-    queryFn: async (): Promise<FollowupWithApplication[]> => {
-      if (!isSupabaseConfigured || !user) return [];
+  const page = params?.page ?? 0;
+  const pageSize = params?.pageSize ?? 10;
+  const tab = params?.tab ?? 'all';
 
-      const { data, error } = await (supabase.from('followups') as any)
-        .select(`
-          *,
-          applications (
-            id,
-            company_name,
-            job_role,
-            status,
-            job_url,
-            recruiter_name,
-            recruiter_email
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('due_date', { ascending: true });
+  const todayDate = getTodayISODate(profile?.timezone);
+
+  const followupsQuery = useQuery({
+    queryKey: [...FOLLOWUPS_QUERY_KEY, user?.id, page, pageSize, tab, todayDate],
+    queryFn: async (): Promise<{
+      followups: FollowupWithApplication[];
+      totalCount: number;
+      counts: {
+        all: number;
+        today: number;
+        overdue: number;
+        upcoming: number;
+        completed: number;
+      };
+    }> => {
+      if (!isSupabaseConfigured || !user) {
+        return {
+          followups: [],
+          totalCount: 0,
+          counts: { all: 0, today: 0, overdue: 0, upcoming: 0, completed: 0 },
+        };
+      }
+
+      // 1. Fetch total counts across tabs in parallel
+      const [allRes, todayRes, overdueRes, upcomingRes, completedRes] = await Promise.all([
+        (supabase.from('followups') as any)
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+        (supabase.from('followups') as any)
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .is('completed_at', null)
+          .eq('due_date', todayDate),
+        (supabase.from('followups') as any)
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .is('completed_at', null)
+          .lt('due_date', todayDate),
+        (supabase.from('followups') as any)
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .is('completed_at', null)
+          .gt('due_date', todayDate),
+        (supabase.from('followups') as any)
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .not('completed_at', 'is', null),
+      ]);
+
+      const counts = {
+        all: allRes.count ?? 0,
+        today: todayRes.count ?? 0,
+        overdue: overdueRes.count ?? 0,
+        upcoming: upcomingRes.count ?? 0,
+        completed: completedRes.count ?? 0,
+      };
+
+      // 2. Fetch paginated records for selected tab
+      let query = (supabase.from('followups') as any)
+        .select(
+          `
+            *,
+            applications (
+              id,
+              company_name,
+              job_role,
+              status,
+              job_url,
+              recruiter_name,
+              recruiter_email
+            )
+          `,
+          { count: 'exact' }
+        )
+        .eq('user_id', user.id);
+
+      if (tab === 'today') {
+        query = query.is('completed_at', null).eq('due_date', todayDate);
+      } else if (tab === 'overdue') {
+        query = query.is('completed_at', null).lt('due_date', todayDate);
+      } else if (tab === 'upcoming') {
+        query = query.is('completed_at', null).gt('due_date', todayDate);
+      } else if (tab === 'completed') {
+        query = query.not('completed_at', 'is', null);
+      }
+
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+
+      const orderDirection = tab === 'completed' ? false : true;
+      query = query.order('due_date', { ascending: orderDirection }).range(from, to);
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
-      return (data || []) as FollowupWithApplication[];
+
+      return {
+        followups: (data || []) as FollowupWithApplication[],
+        totalCount: count ?? 0,
+        counts,
+      };
     },
     enabled: !!user,
   });
@@ -116,7 +207,9 @@ export function useFollowups() {
   });
 
   return {
-    followups: followupsQuery.data || [],
+    followups: followupsQuery.data?.followups || [],
+    totalCount: followupsQuery.data?.totalCount || 0,
+    counts: followupsQuery.data?.counts || { all: 0, today: 0, overdue: 0, upcoming: 0, completed: 0 },
     isLoading: followupsQuery.isLoading,
     isError: followupsQuery.isError,
     error: followupsQuery.error,

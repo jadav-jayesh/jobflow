@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Table,
   TableBody,
@@ -11,7 +11,6 @@ import {
   Box,
   Button,
   TablePagination,
-  Link,
 } from '@mui/material';
 import { FollowupWithApplication } from '../../types/followup';
 import { ApplicationStatus } from '../../types/application';
@@ -23,32 +22,34 @@ import { useAuth } from '../../context/AuthContext';
 
 interface FollowupTableProps {
   followups: FollowupWithApplication[];
+  totalCount: number;
+  page: number;
+  rowsPerPage: number;
+  onPageChange: (newPage: number) => void;
+  onRowsPerPageChange: (newRowsPerPage: number) => void;
   onFollowUp: (followup: FollowupWithApplication) => void;
   onViewApplication: (applicationId: string) => void;
 }
 
 export const FollowupTable: React.FC<FollowupTableProps> = ({
   followups,
+  totalCount,
+  page,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
   onFollowUp,
   onViewApplication,
 }) => {
   const { profile } = useAuth();
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
+    onPageChange(newPage);
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    onRowsPerPageChange(parseInt(event.target.value, 10));
   };
-
-  const paginatedFollowups = followups.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
 
   return (
     <Paper
@@ -73,7 +74,7 @@ export const FollowupTable: React.FC<FollowupTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedFollowups.map((item) => {
+            {followups.map((item) => {
               const app = item.applications;
               const state = getFollowupState(
                 item,
@@ -177,17 +178,15 @@ export const FollowupTable: React.FC<FollowupTableProps> = ({
         </Table>
       </TableContainer>
 
-      {followups.length > rowsPerPage && (
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={followups.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      )}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        component="div"
+        count={totalCount}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
     </Paper>
   );
 };
