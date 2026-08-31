@@ -99,7 +99,7 @@ export const DashboardPage: React.FC = () => {
             value={stats.statusCounts.Applied}
             icon={<SendIcon fontSize="small" />}
             color="#0288d1"
-            onClick={() => navigate('/applications')}
+            onClick={() => navigate('/applications?status=Applied')}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3, lg: 1.5 }}>
@@ -108,7 +108,7 @@ export const DashboardPage: React.FC = () => {
             value={stats.statusCounts['HR Contact']}
             icon={<ContactPhoneIcon fontSize="small" />}
             color="#ed6c02"
-            onClick={() => navigate('/applications')}
+            onClick={() => navigate('/applications?status=HR+Contact')}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3, lg: 1.5 }}>
@@ -117,7 +117,7 @@ export const DashboardPage: React.FC = () => {
             value={stats.statusCounts.Interview}
             icon={<GroupsIcon fontSize="small" />}
             color="#7b1fa2"
-            onClick={() => navigate('/applications')}
+            onClick={() => navigate('/applications?status=Interview')}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3, lg: 1.5 }}>
@@ -126,7 +126,7 @@ export const DashboardPage: React.FC = () => {
             value={stats.statusCounts.Selected}
             icon={<EmojiEventsIcon fontSize="small" />}
             color="#2e7d32"
-            onClick={() => navigate('/applications')}
+            onClick={() => navigate('/applications?status=Selected')}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3, lg: 1.5 }}>
@@ -135,7 +135,7 @@ export const DashboardPage: React.FC = () => {
             value={stats.statusCounts.Rejected}
             icon={<BlockIcon fontSize="small" />}
             color="#d32f2f"
-            onClick={() => navigate('/applications')}
+            onClick={() => navigate('/applications?status=Rejected')}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3, lg: 1.5 }}>
@@ -144,7 +144,7 @@ export const DashboardPage: React.FC = () => {
             value={stats.todayCount}
             icon={<NotificationsActiveIcon fontSize="small" />}
             color="#eab308"
-            onClick={() => navigate('/followups')}
+            onClick={() => navigate('/followups?tab=today')}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3, lg: 1.5 }}>
@@ -153,7 +153,7 @@ export const DashboardPage: React.FC = () => {
             value={stats.overdueCount}
             icon={<WarningAmberIcon fontSize="small" />}
             color="#ef4444"
-            onClick={() => navigate('/followups')}
+            onClick={() => navigate('/followups?tab=overdue')}
           />
         </Grid>
       </Grid>

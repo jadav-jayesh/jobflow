@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Tabs, Tab, Paper } from '@mui/material';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../components/common/PageHeader';
 import { FollowupTable } from '../components/followups/FollowupTable';
 import { EmptyState } from '../components/common/EmptyState';
@@ -18,7 +18,22 @@ type TabValue = 'all' | 'today' | 'overdue' | 'upcoming' | 'completed';
 export const FollowupsPage: React.FC = () => {
   const { profile } = useAuth();
   const { followups, isLoading } = useFollowups();
-  const [activeTab, setActiveTab] = useState<TabValue>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tabParam = (searchParams.get('tab') as TabValue) || 'all';
+  const [activeTab, setActiveTab] = useState<TabValue>(
+    ['all', 'today', 'overdue', 'upcoming', 'completed'].includes(tabParam) ? tabParam : 'all'
+  );
+
+  // Sync state if URL query param changes
+  useEffect(() => {
+    const currentTab = searchParams.get('tab') as TabValue;
+    if (currentTab && ['all', 'today', 'overdue', 'upcoming', 'completed'].includes(currentTab)) {
+      setActiveTab(currentTab);
+    } else if (!currentTab) {
+      setActiveTab('all');
+    }
+  }, [searchParams]);
 
   const { onFollowUp, onViewApplication } = useOutletContext<{
     onFollowUp: (followup: any, app: any) => void;
@@ -27,6 +42,12 @@ export const FollowupsPage: React.FC = () => {
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: TabValue) => {
     setActiveTab(newValue);
+    if (newValue === 'all') {
+      searchParams.delete('tab');
+      setSearchParams(searchParams, { replace: true });
+    } else {
+      setSearchParams({ tab: newValue }, { replace: true });
+    }
   };
 
   const filteredFollowups = useMemo(() => {

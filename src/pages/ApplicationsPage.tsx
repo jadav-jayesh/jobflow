@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../components/common/PageHeader';
 import { ApplicationFilters, ApplicationFilterState } from '../components/applications/ApplicationFilters';
 import { ApplicationTable } from '../components/applications/ApplicationTable';
@@ -13,8 +13,8 @@ import { useApplications } from '../hooks/useApplications';
 import { useAuth } from '../context/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { getFollowupState } from '../utils/followupEngine';
-import { ApplicationWithFollowups } from '../types/application';
-import { Followup } from '../types/followup';
+import { ApplicationWithFollowups, ApplicationStatus, ApplicationSource } from '../types/application';
+import { Followup, FollowupState } from '../types/followup';
 
 const initialFilters: ApplicationFilterState = {
   search: '',
@@ -25,6 +25,8 @@ const initialFilters: ApplicationFilterState = {
 
 export const ApplicationsPage: React.FC = () => {
   const { profile } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const {
     applications,
     isLoading,
@@ -45,8 +47,52 @@ export const ApplicationsPage: React.FC = () => {
     onFollowUp: (followup: Followup, app: ApplicationWithFollowups) => void;
   }>();
 
-  const [filters, setFilters] = useState<ApplicationFilterState>(initialFilters);
+  const [filters, setFilters] = useState<ApplicationFilterState>(() => {
+    const statusParam = (searchParams.get('status') as ApplicationStatus) || 'All';
+    const sourceParam = (searchParams.get('source') as ApplicationSource) || 'All';
+    const followupParam = (searchParams.get('followup') as FollowupState) || 'All';
+    const queryParam = searchParams.get('q') || '';
+
+    return {
+      search: queryParam,
+      status: statusParam,
+      source: sourceParam,
+      followupState: followupParam,
+    };
+  });
+
+  // Keep state synced if URL search params change
+  useEffect(() => {
+    const statusParam = (searchParams.get('status') as ApplicationStatus) || 'All';
+    const sourceParam = (searchParams.get('source') as ApplicationSource) || 'All';
+    const followupParam = (searchParams.get('followup') as FollowupState) || 'All';
+    const queryParam = searchParams.get('q') || '';
+
+    setFilters((prev) => ({
+      ...prev,
+      search: queryParam,
+      status: statusParam,
+      source: sourceParam,
+      followupState: followupParam,
+    }));
+  }, [searchParams]);
+
   const debouncedSearch = useDebounce(filters.search, 250);
+
+  const handleFilterChange = (newFilters: ApplicationFilterState) => {
+    setFilters(newFilters);
+    const params: Record<string, string> = {};
+    if (newFilters.search) params.q = newFilters.search;
+    if (newFilters.status !== 'All') params.status = newFilters.status;
+    if (newFilters.source !== 'All') params.source = newFilters.source;
+    if (newFilters.followupState !== 'All') params.followup = newFilters.followupState;
+    setSearchParams(params, { replace: true });
+  };
+
+  const handleResetFilters = () => {
+    setFilters(initialFilters);
+    setSearchParams({}, { replace: true });
+  };
 
   const filteredApplications = useMemo(() => {
     return applications.filter((app) => {
@@ -111,8 +157,8 @@ export const ApplicationsPage: React.FC = () => {
       {/* Filter and Search Controls */}
       <ApplicationFilters
         filters={filters}
-        onFilterChange={setFilters}
-        onReset={() => setFilters(initialFilters)}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
       />
 
       {/* Main Content Area */}
@@ -132,7 +178,7 @@ export const ApplicationsPage: React.FC = () => {
           title="No matching applications found"
           description="Try clearing your search query or adjusting your status and source filters."
           actionText="Reset Filters"
-          onAction={() => setFilters(initialFilters)}
+          onAction={handleResetFilters}
         />
       ) : (
         <ApplicationTable
