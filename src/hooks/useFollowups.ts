@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { FollowupWithApplication, LogFollowupDTO } from '../types/followup';
@@ -34,6 +34,7 @@ export function useFollowups(params?: UseFollowupsParams) {
 
   const followupsQuery = useQuery({
     queryKey: [...FOLLOWUPS_QUERY_KEY, user?.id, page, pageSize, tab, todayDate],
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<{
       followups: FollowupWithApplication[];
       totalCount: number;
@@ -211,6 +212,7 @@ export function useFollowups(params?: UseFollowupsParams) {
     totalCount: followupsQuery.data?.totalCount || 0,
     counts: followupsQuery.data?.counts || { all: 0, today: 0, overdue: 0, upcoming: 0, completed: 0 },
     isLoading: followupsQuery.isLoading,
+    isFetching: followupsQuery.isFetching,
     isError: followupsQuery.isError,
     error: followupsQuery.error,
     logFollowup: logFollowupMutation.mutateAsync,

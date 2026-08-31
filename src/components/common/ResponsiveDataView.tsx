@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import {
   Box,
-  CircularProgress,
   Typography,
   Button,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { CardLoadingSkeleton } from './LoadingSkeleton';
 
 export interface ResponsiveDataViewProps<T> {
   items: T[];
@@ -59,7 +59,7 @@ export function ResponsiveDataView<T>({
 
     const observer = new IntersectionObserver(handleObserver, {
       root: null,
-      rootMargin: '160px',
+      rootMargin: '200px',
       threshold: 0.1,
     });
 
@@ -90,36 +90,36 @@ export function ResponsiveDataView<T>({
       >
         {cardItems.map((item, index) => renderCard(item, index))}
 
+        {/* Pure Card Skeletons when fetching next page */}
+        {isLoadingMore && (
+          <Box sx={{ mt: 0.5 }}>
+            <CardLoadingSkeleton cards={2} />
+          </Box>
+        )}
+
         {/* Sentinel element for infinite scroll */}
         <Box
           ref={sentinelRef}
           sx={{
-            py: 2,
+            py: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            minHeight: 48,
+            minHeight: 24,
           }}
         >
-          {isLoadingMore ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <CircularProgress size={20} color="primary" />
-              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                Loading more items...
-              </Typography>
-            </Box>
-          ) : hasMore && onLoadMore ? (
+          {!isLoadingMore && hasMore && onLoadMore ? (
             <Button
               variant="outlined"
               size="small"
               endIcon={<KeyboardArrowDownIcon />}
               onClick={onLoadMore}
-              sx={{ fontWeight: 600, textTransform: 'none' }}
+              sx={{ fontWeight: 600, textTransform: 'none', borderRadius: 2 }}
             >
               Load more ({cardItems.length} of {totalCount})
             </Button>
-          ) : cardItems.length > 0 ? (
+          ) : !hasMore && cardItems.length > 0 ? (
             <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 500 }}>
               All {totalCount} items loaded
             </Typography>

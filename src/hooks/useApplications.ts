@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -52,6 +52,7 @@ export function useApplications(params?: UseApplicationsParams) {
       source,
       followupState,
     ],
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<{
       applications: ApplicationWithFollowups[];
       totalCount: number;
@@ -250,6 +251,7 @@ export function useApplications(params?: UseApplicationsParams) {
     applications: applicationsQuery.data?.applications || [],
     totalCount: applicationsQuery.data?.totalCount || 0,
     isLoading: applicationsQuery.isLoading,
+    isFetching: applicationsQuery.isFetching,
     isError: applicationsQuery.isError,
     error: applicationsQuery.error,
     createApplication: createApplicationMutation.mutateAsync,

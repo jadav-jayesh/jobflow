@@ -34,20 +34,28 @@ export const FollowupsPage: React.FC = () => {
   }, [searchParams]);
 
   // Backend-Driven Data Query
-  const { followups, totalCount, counts, isLoading } = useFollowups({
+  const {
+    followups,
+    totalCount,
+    counts,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useFollowups({
     page,
     pageSize: rowsPerPage,
     tab: activeTab,
   });
 
-  // Accumulate items for mobile infinite scrolling
+  // Accumulate items for mobile infinite scrolling without DOM collapse
   useEffect(() => {
     if (page === 0) {
       setAccumulatedFollowups(followups);
-    } else if (followups.length > 0) {
+    } else if (followups && followups.length > 0) {
       setAccumulatedFollowups((prev) => {
         const existingIds = new Set(prev.map((f) => f.id));
         const newItems = followups.filter((f) => !existingIds.has(f.id));
+        if (newItems.length === 0) return prev;
         return [...prev, ...newItems];
       });
     }
@@ -69,12 +77,12 @@ export const FollowupsPage: React.FC = () => {
     }
   };
 
-  const mobileDisplayFollowups = page === 0 ? followups : accumulatedFollowups;
+  const mobileDisplayFollowups = accumulatedFollowups.length > 0 ? accumulatedFollowups : followups;
   const hasMore = mobileDisplayFollowups.length < totalCount;
-  const isLoadingMore = isLoading && page > 0;
+  const isLoadingMore = isFetching && page > 0;
 
   const handleLoadMore = () => {
-    if (hasMore && !isLoading) {
+    if (hasMore && !isFetching) {
       setPage((prev) => prev + 1);
     }
   };

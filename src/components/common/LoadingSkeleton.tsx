@@ -17,6 +17,70 @@ export const TableLoadingSkeleton: React.FC<{ rows?: number }> = ({ rows = 5 }) 
   );
 };
 
+export const CardLoadingSkeleton: React.FC<{ cards?: number }> = ({ cards = 2 }) => {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+      {Array.from({ length: cards }).map((_, idx) => (
+        <Paper
+          key={idx}
+          elevation={0}
+          sx={{
+            p: 2.25,
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+          }}
+        >
+          {/* Header */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Skeleton variant="text" width="45%" height={28} sx={{ borderRadius: 1 }} />
+            <Skeleton variant="rounded" width={80} height={24} sx={{ borderRadius: 2 }} />
+          </Box>
+
+          {/* 2-column grid */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+            <Box>
+              <Skeleton variant="text" width="30%" height={16} />
+              <Skeleton variant="text" width="70%" height={22} />
+            </Box>
+            <Box>
+              <Skeleton variant="text" width="30%" height={16} />
+              <Skeleton variant="text" width="60%" height={22} />
+            </Box>
+            <Box>
+              <Skeleton variant="text" width="30%" height={16} />
+              <Skeleton variant="text" width="50%" height={22} />
+            </Box>
+            <Box>
+              <Skeleton variant="text" width="30%" height={16} />
+              <Skeleton variant="text" width="55%" height={22} />
+            </Box>
+          </Box>
+
+          {/* Action bar */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              pt: 1.5,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Skeleton variant="rounded" width={110} height={32} sx={{ borderRadius: 2 }} />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Skeleton variant="circular" width={32} height={32} />
+              <Skeleton variant="circular" width={32} height={32} />
+            </Box>
+          </Box>
+        </Paper>
+      ))}
+    </Box>
+  );
+};
+
 export const DashboardLoadingSkeleton: React.FC = () => {
   return (
     <Box sx={{ width: '100%' }}>

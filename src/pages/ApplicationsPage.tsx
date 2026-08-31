@@ -65,6 +65,7 @@ export const ApplicationsPage: React.FC = () => {
     applications,
     totalCount,
     isLoading,
+    isFetching,
     deleteApplication,
     refetch,
   } = useApplications({
@@ -76,14 +77,15 @@ export const ApplicationsPage: React.FC = () => {
     followupState: filters.followupState,
   });
 
-  // Accumulate items for mobile infinite scrolling
+  // Accumulate items for mobile infinite scrolling without DOM collapse
   useEffect(() => {
     if (page === 0) {
       setAccumulatedApps(applications);
-    } else if (applications.length > 0) {
+    } else if (applications && applications.length > 0) {
       setAccumulatedApps((prev) => {
         const existingIds = new Set(prev.map((a) => a.id));
         const newItems = applications.filter((a) => !existingIds.has(a.id));
+        if (newItems.length === 0) return prev;
         return [...prev, ...newItems];
       });
     }
@@ -121,12 +123,12 @@ export const ApplicationsPage: React.FC = () => {
     refetch();
   };
 
-  const mobileDisplayApps = page === 0 ? applications : accumulatedApps;
+  const mobileDisplayApps = accumulatedApps.length > 0 ? accumulatedApps : applications;
   const hasMore = mobileDisplayApps.length < totalCount;
-  const isLoadingMore = isLoading && page > 0;
+  const isLoadingMore = isFetching && page > 0;
 
   const handleLoadMore = () => {
-    if (hasMore && !isLoading) {
+    if (hasMore && !isFetching) {
       setPage((prev) => prev + 1);
     }
   };
