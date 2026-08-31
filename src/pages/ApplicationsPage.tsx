@@ -26,6 +26,7 @@ export const ApplicationsPage: React.FC = () => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [accumulatedApps, setAccumulatedApps] = useState<ApplicationWithFollowups[]>([]);
 
   const [filters, setFilters] = useState<ApplicationFilterState>(() => {
     const statusParam = (searchParams.get('status') as ApplicationStatus) || 'All';
@@ -57,6 +58,7 @@ export const ApplicationsPage: React.FC = () => {
       followupState: followupParam,
     });
     setPage(0);
+    setAccumulatedApps([]);
   }, [searchParams]);
 
   // Query Backend with Server-Side Pagination & Filtering
@@ -73,6 +75,21 @@ export const ApplicationsPage: React.FC = () => {
     source: filters.source,
     followupState: filters.followupState,
   });
+
+  // Accumulate items for mobile infinite scrolling
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (page === 0) {
+      setAccumulatedApps(applications);
+    } else if (applications.length > 0) {
+      setAccumulatedApps((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id));
+        const newItems = applications.filter((a) => !existingIds.has(a.id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [applications, page, isLoading]);
 
   const {
     onOpenAddModal,
@@ -91,6 +108,7 @@ export const ApplicationsPage: React.FC = () => {
   const handleFilterChange = (newFilters: ApplicationFilterState) => {
     setFilters(newFilters);
     setPage(0);
+    setAccumulatedApps([]);
     const params: Record<string, string> = {};
     if (newFilters.search) params.q = newFilters.search;
     if (newFilters.status !== 'All') params.status = newFilters.status;
@@ -102,7 +120,17 @@ export const ApplicationsPage: React.FC = () => {
   const handleResetFilters = () => {
     setFilters(initialFilters);
     setPage(0);
+    setAccumulatedApps([]);
     setSearchParams({}, { replace: true });
+  };
+
+  const hasMore = accumulatedApps.length < totalCount;
+  const isLoadingMore = isLoading && page > 0;
+
+  const handleLoadMore = () => {
+    if (hasMore && !isLoading) {
+      setPage((prev) => prev + 1);
+    }
   };
 
   return (
@@ -133,7 +161,7 @@ export const ApplicationsPage: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      {isLoading ? (
+      {isLoading && page === 0 ? (
         <TableLoadingSkeleton rows={6} />
       ) : totalCount === 0 && !filters.search && filters.status === 'All' && filters.source === 'All' && filters.followupState === 'All' ? (
         <EmptyState
@@ -144,7 +172,7 @@ export const ApplicationsPage: React.FC = () => {
           onAction={onOpenAddModal}
           icon={<WorkOutlineOutlinedIcon sx={{ fontSize: 56, color: 'primary.main' }} />}
         />
-      ) : applications.length === 0 ? (
+      ) : accumulatedApps.length === 0 && !isLoading ? (
         <EmptyState
           title="No matching applications found"
           description="Try clearing your search query or adjusting your status and source filters."
@@ -154,14 +182,19 @@ export const ApplicationsPage: React.FC = () => {
       ) : (
         <ApplicationTable
           applications={applications}
+          mobileApplications={accumulatedApps}
           totalCount={totalCount}
           page={page}
           rowsPerPage={rowsPerPage}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
           onPageChange={setPage}
           onRowsPerPageChange={(newSize) => {
             setRowsPerPage(newSize);
             setPage(0);
+            setAccumulatedApps([]);
           }}
+          onLoadMore={handleLoadMore}
           onView={onViewApplication}
           onEdit={onEditApplication}
           onDelete={onDeleteApplication}

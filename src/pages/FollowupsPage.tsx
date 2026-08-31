@@ -20,6 +20,7 @@ export const FollowupsPage: React.FC = () => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [accumulatedFollowups, setAccumulatedFollowups] = useState<FollowupWithApplication[]>([]);
 
   // Sync tab state when URL search params change
   useEffect(() => {
@@ -30,6 +31,7 @@ export const FollowupsPage: React.FC = () => {
       setActiveTab('all');
     }
     setPage(0);
+    setAccumulatedFollowups([]);
   }, [searchParams]);
 
   // Backend-Driven Data Query
@@ -39,6 +41,21 @@ export const FollowupsPage: React.FC = () => {
     tab: activeTab,
   });
 
+  // Accumulate items for mobile infinite scrolling
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (page === 0) {
+      setAccumulatedFollowups(followups);
+    } else if (followups.length > 0) {
+      setAccumulatedFollowups((prev) => {
+        const existingIds = new Set(prev.map((f) => f.id));
+        const newItems = followups.filter((f) => !existingIds.has(f.id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [followups, page, isLoading]);
+
   const { onFollowUp, onViewApplication } = useOutletContext<{
     onFollowUp: (followup: any, app: any) => void;
     onViewApplication: (app: any) => void;
@@ -47,11 +64,21 @@ export const FollowupsPage: React.FC = () => {
   const handleTabChange = (_event: React.SyntheticEvent, newValue: FollowupTabValue) => {
     setActiveTab(newValue);
     setPage(0);
+    setAccumulatedFollowups([]);
     if (newValue === 'all') {
       searchParams.delete('tab');
       setSearchParams(searchParams, { replace: true });
     } else {
       setSearchParams({ tab: newValue }, { replace: true });
+    }
+  };
+
+  const hasMore = accumulatedFollowups.length < totalCount;
+  const isLoadingMore = isLoading && page > 0;
+
+  const handleLoadMore = () => {
+    if (hasMore && !isLoading) {
+      setPage((prev) => prev + 1);
     }
   };
 
@@ -109,9 +136,9 @@ export const FollowupsPage: React.FC = () => {
       </Paper>
 
       {/* Main Follow-up List */}
-      {isLoading ? (
+      {isLoading && page === 0 ? (
         <TableLoadingSkeleton rows={5} />
-      ) : followups.length === 0 ? (
+      ) : accumulatedFollowups.length === 0 && !isLoading ? (
         <EmptyState
           title={
             activeTab === 'today'
@@ -130,17 +157,22 @@ export const FollowupsPage: React.FC = () => {
       ) : (
         <FollowupTable
           followups={followups}
+          mobileFollowups={accumulatedFollowups}
           totalCount={totalCount}
           page={page}
           rowsPerPage={rowsPerPage}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
           onPageChange={setPage}
           onRowsPerPageChange={(newSize) => {
             setRowsPerPage(newSize);
             setPage(0);
+            setAccumulatedFollowups([]);
           }}
+          onLoadMore={handleLoadMore}
           onFollowUp={(item) => onFollowUp(item, item.applications)}
           onViewApplication={(appId) => {
-            const app = itemAppFromId(appId, followups);
+            const app = itemAppFromId(appId, accumulatedFollowups);
             if (app) onViewApplication(app);
           }}
         />
