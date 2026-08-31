@@ -29,9 +29,14 @@ import { useNavigate } from 'react-router-dom';
 interface NavbarProps {
   onOpenAddModal: () => void;
   onDrawerToggle: () => void;
+  onToggleDesktopSidebar?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenAddModal, onDrawerToggle }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  onOpenAddModal,
+  onDrawerToggle,
+  onToggleDesktopSidebar,
+}) => {
   const { user, profile, signOut } = useAuth();
   const { themeMode, setThemeMode } = useUIStore();
   const navigate = useNavigate();
@@ -81,15 +86,31 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAddModal, onDrawerToggle }
       <Toolbar sx={{ minHeight: '64px !important', justifyContent: 'space-between', px: { xs: 2, sm: 3 } }}>
         {/* Left Side: Drawer Toggle & Brand */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {/* Mobile Drawer Toggle */}
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
             onClick={onDrawerToggle}
-            sx={{ mr: 1, display: { md: 'none' } }}
+            sx={{ mr: 0.5, display: { md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
+
+          {/* Desktop Sidebar Collapse Toggle */}
+          {onToggleDesktopSidebar && (
+            <Tooltip title="Toggle sidebar">
+              <IconButton
+                edge="start"
+                color="inherit"
+                aria-label="toggle sidebar"
+                onClick={onToggleDesktopSidebar}
+                sx={{ mr: 0.5, display: { xs: 'none', md: 'inline-flex' } }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Tooltip>
+          )}
 
           <Box
             sx={{ display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer' }}

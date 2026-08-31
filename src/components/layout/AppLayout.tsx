@@ -15,14 +15,19 @@ import { FollowupActionDialog } from '../followups/FollowupActionDialog';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useApplications } from '../../hooks/useApplications';
 import { useFollowups } from '../../hooks/useFollowups';
+import { useUIStore } from '../../store/uiStore';
 import { ApplicationWithFollowups, ApplicationStatus } from '../../types/application';
 import { Followup } from '../../types/followup';
 import { ApplicationFormData, FollowupLogFormData } from '../../utils/validation';
 
-const DRAWER_WIDTH = 240;
+const DRAWER_EXPANDED_WIDTH = 240;
+const DRAWER_COLLAPSED_WIDTH = 72;
 
 export const AppLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { sidebarOpen, toggleSidebar } = useUIStore();
+
+  const currentDesktopWidth = sidebarOpen ? DRAWER_EXPANDED_WIDTH : DRAWER_COLLAPSED_WIDTH;
 
   // Global Dialog States
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -53,7 +58,7 @@ export const AppLayout: React.FC = () => {
 
   const { logFollowup, isLogging } = useFollowups();
 
-  const handleDrawerToggle = () => {
+  const handleMobileDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
@@ -146,78 +151,109 @@ export const AppLayout: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'background.default' }}>
-      {/* 1. Full-Width Top Navigation */}
+    <Box
+      sx={{
+        height: '100vh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'background.default',
+        overflow: 'hidden',
+      }}
+    >
+      {/* 1. Full-Width Fixed Top Navigation */}
       <Navbar
         onOpenAddModal={() => {
           setEditingApp(null);
           setAddModalOpen(true);
         }}
-        onDrawerToggle={handleDrawerToggle}
+        onDrawerToggle={handleMobileDrawerToggle}
+        onToggleDesktopSidebar={toggleSidebar}
       />
 
-      {/* 2. Below Header Layout Container (Sidebar + Main Content) */}
-      <Box sx={{ display: 'flex', flexGrow: 1, width: '100%', minHeight: 'calc(100vh - 64px)' }}>
+      {/* 2. Below Header Layout Container (Fixed Sidebar + Independently Scrolling Main Content) */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexGrow: 1,
+          width: '100%',
+          height: 'calc(100vh - 64px)',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
         {/* Responsive Navigation Drawer / Sidebar */}
         <Box
           component="nav"
-          sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
+          sx={{
+            width: { md: currentDesktopWidth },
+            flexShrink: { md: 0 },
+            transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            height: '100%',
+          }}
           aria-label="navigation menus"
         >
-          {/* Mobile Drawer */}
+          {/* Mobile Drawer (Temporary) */}
           <Drawer
             variant="temporary"
             open={mobileOpen}
-            onClose={handleDrawerToggle}
+            onClose={handleMobileDrawerToggle}
             ModalProps={{ keepMounted: true }}
             sx={{
               display: { xs: 'block', md: 'none' },
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
-                width: DRAWER_WIDTH,
+                width: DRAWER_EXPANDED_WIDTH,
                 backgroundColor: 'background.paper',
                 borderRight: '1px solid',
                 borderColor: 'divider',
               },
             }}
           >
-            <Sidebar onItemClick={() => setMobileOpen(false)} />
+            <Sidebar isMobile onItemClick={() => setMobileOpen(false)} />
           </Drawer>
 
-          {/* Desktop Permanent Sidebar */}
+          {/* Desktop Permanent Collapsible Sidebar */}
           <Drawer
             variant="permanent"
             sx={{
               display: { xs: 'none', md: 'block' },
+              height: '100%',
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
-                width: DRAWER_WIDTH,
-                position: 'sticky',
-                top: 64,
-                height: 'calc(100vh - 64px)',
+                width: currentDesktopWidth,
+                transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                height: '100%',
                 backgroundColor: 'background.paper',
                 borderRight: '1px solid',
                 borderColor: 'divider',
+                overflowX: 'hidden',
               },
             }}
             open
           >
-            <Sidebar />
+            <Sidebar
+              collapsed={!sidebarOpen}
+              onToggleCollapse={toggleSidebar}
+            />
           </Drawer>
         </Box>
 
-        {/* Main Application Content Area */}
+        {/* Main Application Content Area — Isolated Scroll */}
         <Box
           component="main"
           sx={{
             flexGrow: 1,
             p: { xs: 2, sm: 3, md: 4 },
-            width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
-            minHeight: 'calc(100vh - 64px)',
+            width: { xs: '100%', md: `calc(100% - ${currentDesktopWidth}px)` },
+            height: '100%',
+            overflowY: 'auto',
             overflowX: 'hidden',
+            backgroundColor: 'background.default',
           }}
         >
-          <Container maxWidth="xl" disableGutters>
+          <Container maxWidth="xl" disableGutters sx={{ pb: 6 }}>
             <Outlet
               context={{
                 onOpenAddModal: () => {
