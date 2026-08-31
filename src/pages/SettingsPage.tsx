@@ -270,7 +270,7 @@ export const SettingsPage: React.FC = () => {
                 Email Reminders
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Receive personal reminder digests when follow-ups are due. (JobFlow sends reminders to
+                Receive personal reminder digests when follow-ups are due. (CareerPulse sends reminders to
                 you, never to recruiters).
               </Typography>
             </Grid>
@@ -383,7 +383,7 @@ export const SettingsPage: React.FC = () => {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 fullWidth
-                placeholder="Jayesh Patel"
+                placeholder="Jayesh Jadav"
               />
             </Grid>
 

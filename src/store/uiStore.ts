@@ -21,7 +21,7 @@ export const useUIStore = create<UIState>()(
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
     }),
     {
-      name: 'jobflow-ui-settings',
+      name: 'careerpulse-ui-settings',
     }
   )
 );

@@ -1,32 +1,37 @@
-import type { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 import nodemailer from 'nodemailer';
 
-const smtpHost = process.env.SMTP_HOST;
-const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASSWORD;
-const smtpFrom = process.env.SMTP_FROM || 'JobFlow <reminders@jobflow.app>';
-
-export const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
+export default async (req: Request) => {
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   try {
-    const { to, userName } = JSON.parse(event.body || '{}');
+    const { to, userName } = await req.json();
 
     if (!to) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Recipient email is required.' }) };
+      return new Response(
+        JSON.stringify({ error: 'Missing destination email address (to)' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASSWORD;
+    const smtpFrom = process.env.SMTP_FROM || 'CareerPulse Reminders <no-reply@careerpulse.app>';
+
     if (!smtpHost || !smtpUser || !smtpPass) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
+      return new Response(
+        JSON.stringify({
           error:
-            'SMTP credentials (SMTP_HOST, SMTP_USER, SMTP_PASSWORD) are not configured in Netlify environment variables.',
+            'SMTP environment variables are not configured in Netlify (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD).',
         }),
-      };
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     const transporter = nodemailer.createTransport({
@@ -39,43 +44,35 @@ export const handler: Handler = async (event: HandlerEvent, _context: HandlerCon
       },
     });
 
-    // Verify SMTP connection
-    await transporter.verify();
+    const testSubject = '✅ CareerPulse Test Reminder Notification';
+    const testHtml = `
+      <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #2563eb;">CareerPulse Email Setup Verified!</h2>
+        <p>Hi ${userName || 'User'},</p>
+        <p>This is a test notification confirming that your SMTP server and email reminder configuration are working properly.</p>
+        <p>When job application follow-ups are due, you will receive reminders here.</p>
+        <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #64748b;">CareerPulse • Automated Personal Job Application Tracker</p>
+      </div>
+    `;
 
-    // Send Test Email
-    const info = await transporter.sendMail({
+    await transporter.sendMail({
       from: smtpFrom,
       to,
-      subject: '✅ JobFlow — Email Reminders Verification',
-      text: `Hi ${userName || 'there'},\n\nThis is a test email confirming that your JobFlow email reminders are correctly configured.\n\nYou will receive timely reminders when your job application follow-ups are due.\n\nHappy job hunting!\n— The JobFlow Team`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h2 style="color: #16a34a; margin-top: 0;">✅ Reminders Verified</h2>
-          <p>Hi <strong>${userName || 'there'}</strong>,</p>
-          <p>This confirms that your <strong>JobFlow</strong> automated email reminders are properly connected and working.</p>
-          <p>Whenever a job application follow-up becomes due, you will receive a daily morning reminder with the recruiter's contact information and a ready-to-use outreach message template.</p>
-          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 12px; border-radius: 6px; margin: 16px 0; font-size: 14px;">
-            ✓ SMTP Delivery Connected Successfully
-          </div>
-          <p style="color: #94a3b8; font-size: 12px; margin-top: 24px;">JobFlow — Personal Job Application Tracker</p>
-        </div>
-      `,
+      subject: testSubject,
+      text: `CareerPulse Email Setup Verified! Hi ${userName || 'User'}, your SMTP configuration is functioning properly.`,
+      html: testHtml,
     });
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: `Test email successfully sent to ${to}`,
-        messageId: info.messageId,
-      }),
-    };
+    return new Response(
+      JSON.stringify({ message: `Test email successfully dispatched to ${to}` }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (err: any) {
-    console.error('Test email sending failed:', err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        error: `SMTP Error: ${err.message || 'Failed to send test email'}`,
-      }),
-    };
+    console.error('[CareerPulse Test Email] Error sending test message:', err);
+    return new Response(
+      JSON.stringify({ error: err.message || 'Failed to send test email' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 };

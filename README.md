@@ -1,4 +1,4 @@
-# JobFlow — Simple Job Application Tracker
+# CareerPulse — Smart Job Application & Follow-up Tracker
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)]()
@@ -7,7 +7,7 @@
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20Auth-3ecf8e.svg)]()
 [![Netlify](https://img.shields.io/badge/Netlify-Functions%20%2B%20Scheduled-00ad9f.svg)]()
 
-**JobFlow** is a personal productivity web application designed to track job applications, automatically calculate and schedule follow-up outreach intervals, log recruiter response histories, and deliver automated daily email reminders to you.
+**CareerPulse** is a personal productivity web application designed to track job applications, automatically calculate and schedule follow-up outreach intervals (+3d, +4d, +7d), log recruiter response histories, and deliver automated daily email reminders to you.
 
 ---
 
@@ -26,7 +26,7 @@ Follow-up becomes due (Today / Overdue)
              ↓
 Netlify Scheduled Function sends reminder email to YOU
              ↓
-Open JobFlow & Click "Follow Up"
+Open CareerPulse & Click "Follow Up"
              ↓
 Record Outreach Method & Result
              ↓
@@ -54,7 +54,7 @@ Record Outreach Method & Result
   - `test-email.ts` — Verification function for testing SMTP connectivity from settings
 - **Database & Auth**:
   - Supabase PostgreSQL
-  - Supabase Auth (Email / Password)
+  - Supabase Auth (Email / Password with autoconfirm)
   - Supabase Row Level Security (RLS) policies
 
 ---
@@ -73,34 +73,11 @@ User (auth.users)
        └── followups (id, application_id, user_id, sequence_number, due_date, method, result, notes, completed_at, reminder_sent, reminder_sent_at)
 ```
 
-### Row Level Security (RLS)
-Every table is locked down with strict RLS policies ensuring users can only read, insert, update, and delete their own records via `auth.uid() = user_id`.
-
 ---
 
 ## 4. Setup & Deployment Guide
 
-### Step 1: Supabase Setup
-1. Create a free project at [supabase.com](https://supabase.com).
-2. Go to **SQL Editor** in the Supabase Dashboard.
-3. Open [`supabase/migrations/01_initial_schema.sql`](file:///home/groovy/jobflow/supabase/migrations/01_initial_schema.sql) and paste the entire script into the SQL Editor, then click **Run**.
-   - This creates all tables, foreign keys with cascading deletes, indexes, triggers, and RLS policies.
-4. Go to **Project Settings -> API** and copy:
-   - **Project URL**
-   - **anon public API key**
-   - **service_role secret API key**
-
----
-
-### Step 2: Configure Environment Variables
-
-Create your local `.env` file from the provided `.env.example`:
-
-```bash
-cp .env.example .env
-```
-
-Set the values in `.env`:
+### Step 1: Environment Variables
 
 ```ini
 # Frontend Variables (Exposed to browser)
@@ -115,14 +92,10 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
-SMTP_FROM="JobFlow Reminders <reminders@jobflow.app>"
+SMTP_FROM="CareerPulse Reminders <reminders@careerpulse.app>"
 ```
 
----
-
-### Step 3: Local Development
-
-Install dependencies and start the Vite dev server:
+### Step 2: Local Development
 
 ```bash
 # Install dependencies
@@ -134,30 +107,6 @@ npm test
 # Start Vite dev server
 npm run dev
 ```
-
-Open `http://localhost:5173` in your browser.
-
----
-
-### Step 4: Netlify Deployment
-
-1. Push your repository to GitHub / GitLab.
-2. Log in to [Netlify](https://netlify.com) and click **"Add new site" -> "Import an existing project"**.
-3. Select your repository.
-4. Build configuration is auto-detected via [`netlify.toml`](file:///home/groovy/jobflow/netlify.toml):
-   - **Build command**: `npm run build`
-   - **Publish directory**: `dist`
-   - **Functions directory**: `netlify/functions`
-5. Go to **Site settings -> Environment variables** and add:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `SMTP_HOST`
-   - `SMTP_PORT`
-   - `SMTP_USER`
-   - `SMTP_PASSWORD`
-   - `SMTP_FROM`
-6. Click **Deploy Site**.
 
 ---
 
@@ -176,41 +125,9 @@ Open `http://localhost:5173` in your browser.
 - **Outreach Results**:
   - `No Response`: Marks current follow-up completed and automatically schedules the next sequence item if sequence < max.
   - `Response Received`: Completes follow-up and stops automatic follow-ups.
-- **Dynamic States**:
-  - 🟢 **Upcoming**: Due date is in the future.
-  - 🟡 **Today**: Due date is today in user's timezone.
-  - 🔴 **Overdue**: Due date is in the past and uncompleted.
-  - ✓ **Completed**: Outreach logged.
-  - — **Not Required**: Application is in an inactive stage.
 
 ---
 
-## 6. Email Reminder System
-
-- Netlify Scheduled Functions check daily at `09:00 UTC` for due reminders.
-- Reminders are sent **only to the user** (never to recruiters).
-- Emails contain recruiter contact information and a ready-to-use outreach message template.
-- Idempotent: `reminder_sent = true` is updated only upon verified SMTP dispatch. Failed emails are safely retried on the next run.
-
----
-
-## 7. Testing & Verification
-
-Run the test suite with Vitest:
-
-```bash
-npx vitest run
-```
-
-Tests verify:
-- Sequence 1 (+3 days), Sequence 2 (+4 days), Sequence 3 (+7 days) calculations.
-- Maximum follow-up limits.
-- Stopping automation on `Response Received`.
-- Halting automation when application status is inactive (`Rejected`, `Selected`, `Withdrawn`).
-- Timezone and dynamic state calculations.
-
----
-
-## 8. License
+## 6. License
 
 MIT License — Built for personal productivity.

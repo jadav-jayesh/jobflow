@@ -210,7 +210,7 @@ export const DashboardPage: React.FC = () => {
       {stats.total === 0 ? (
         <EmptyState
           title="No applications yet"
-          description="Start tracking your job search today. Add your first application and let JobFlow handle the follow-up timeline automatically."
+          description="Start tracking your job search today. Add your first application and let CareerPulse handle the follow-up timeline automatically."
           actionText="+ Add Application"
           actionIcon={<AddIcon />}
           onAction={onOpenAddModal}

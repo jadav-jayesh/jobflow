@@ -11,7 +11,7 @@ import {
   Container,
   MenuItem,
 } from '@mui/material';
-import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
+import { BrandLogo } from '../components/common/BrandLogo';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
@@ -75,29 +75,16 @@ export const RegisterPage: React.FC = () => {
             textAlign: 'center',
           }}
         >
-          {/* Logo Brand */}
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: 2.5,
-              backgroundColor: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              mx: 'auto',
-              mb: 2,
-            }}
-          >
-            <WorkOutlineOutlinedIcon sx={{ fontSize: 28 }} />
+          {/* Brand Logo */}
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+            <BrandLogo size={52} />
           </Box>
 
           <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em', mb: 0.5 }}>
-            Create your account
+            Join Career<span style={{ color: '#2563eb' }}>Pulse</span>
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Start managing your applications effortlessly.
+            Start managing your application pipeline effortlessly.
           </Typography>
 
           {errorMessage && (
@@ -124,7 +111,7 @@ export const RegisterPage: React.FC = () => {
                     fullWidth
                     error={!!errors.full_name}
                     helperText={errors.full_name?.message}
-                    placeholder="e.g. Jayesh Patel"
+                    placeholder="e.g. Jayesh Jadav"
                     autoFocus
                   />
                 )}

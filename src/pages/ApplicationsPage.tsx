@@ -121,7 +121,7 @@ export const ApplicationsPage: React.FC = () => {
       ) : applications.length === 0 ? (
         <EmptyState
           title="No applications added yet"
-          description="Click '+ Add Application' to log your first job application. JobFlow will immediately calculate your follow-up schedule."
+          description="Click '+ Add Application' to log your first job application. CareerPulse will immediately calculate your follow-up schedule."
           actionText="+ Add Application"
           actionIcon={<AddIcon />}
           onAction={onOpenAddModal}

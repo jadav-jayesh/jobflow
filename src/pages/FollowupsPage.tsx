@@ -135,7 +135,7 @@ export const FollowupsPage: React.FC = () => {
           description={
             activeTab === 'today' || activeTab === 'overdue'
               ? "You're all caught up with your scheduled application outreach!"
-              : "As you apply to jobs, JobFlow will automatically populate your follow-up timeline."
+              : "As you apply to jobs, CareerPulse will automatically populate your follow-up timeline."
           }
           icon={<CheckCircleOutlinedIcon sx={{ fontSize: 56, color: 'success.main' }} />}
         />

@@ -21,7 +21,7 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import SettingsBrightnessOutlinedIcon from '@mui/icons-material/SettingsBrightnessOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
-import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
+import { BrandLogo } from '../common/BrandLogo';
 import { useAuth } from '../../context/AuthContext';
 import { useUIStore, ThemeMode } from '../../store/uiStore';
 import { useNavigate } from 'react-router-dom';
@@ -116,23 +116,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             sx={{ display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer' }}
             onClick={() => navigate('/dashboard')}
           >
-            <Box
-              sx={{
-                width: 34,
-                height: 34,
-                borderRadius: 2,
-                backgroundColor: 'primary.main',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                boxShadow: '0 2px 4px rgba(37, 99, 235, 0.25)',
-              }}
-            >
-              <WorkOutlineOutlinedIcon sx={{ fontSize: 20 }} />
-            </Box>
+            <BrandLogo size={34} />
             <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center' }}>
-              Job<span style={{ color: '#2563eb' }}>Flow</span>
+              Career<span style={{ color: '#2563eb' }}>Pulse</span>
             </Typography>
           </Box>
         </Box>
